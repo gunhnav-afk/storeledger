@@ -241,56 +241,66 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
       <small className="muted">
         {t('Bật hoặc tạm tắt từng danh mục trên trang đặt hàng. Khi tạm tắt, món và bảng giá vẫn giữ nguyên để mở bán lại bất cứ lúc nào.')}
       </small>
-      {Object.keys(modes).map((category) => {
-        const isHidden = hiddenCategories.includes(category)
-        return (
-          <div key={category} className="row rule-row">
-            <label>
-              {t('Danh mục')}
-              {category === '' ? (
-                <input type="text" value={t('Chưa phân loại')} disabled />
-              ) : (
-                <input
-                  type="text"
-                  value={categoryNames[category] ?? category}
-                  aria-label={t('Tên danh mục {name}', { name: category })}
-                  onChange={(e) => setCategoryNames((ns) => ({ ...ns, [category]: e.target.value }))}
-                />
-              )}
-            </label>
-            <label>
-              {t('Trạng thái & cách bán')}
-              <select
-                value={isHidden ? 'hidden' : modes[category]}
-                onChange={(e) => {
-                  const val = e.target.value
-                  if (val === 'hidden') {
-                    setHiddenCategories((hs) => (hs.includes(category) ? hs : [...hs, category]))
-                  } else {
-                    setHiddenCategories((hs) => hs.filter((c) => c !== category))
-                    setModes((m) => ({ ...m, [category]: val as 'set' | 'single' }))
-                  }
-                }}
-              >
-                <option value="set">{t('Bán theo set 4 / 6 hũ')}</option>
-                <option value="single">{t('Bán lẻ từng phần')}</option>
-                <option value="hidden">{t('Chờ mở gom (tắt nhận đơn trên web)')}</option>
-              </select>
-            </label>
-            <button
-              type="button"
-              className={isHidden ? 'link' : 'link danger'}
-              onClick={() =>
-                setHiddenCategories((hs) =>
-                  hs.includes(category) ? hs.filter((c) => c !== category) : [...hs, category],
-                )
-              }
-            >
-              {isHidden ? t('Mở bán lại') : t('Chờ mở gom')}
-            </button>
-          </div>
-        )
-      })}
+      <div className="table-wrap">
+        <table className="storefront-cat-table">
+          <thead>
+            <tr>
+              <th>{t('Danh mục')}</th>
+              <th style={{ width: '220px' }}>{t('Cách bán')}</th>
+              <th style={{ width: '130px', textAlign: 'center' }}>{t('Trạng thái trên web')}</th>
+              <th style={{ width: '120px', textAlign: 'right' }} />
+            </tr>
+          </thead>
+          <tbody>
+            {Object.keys(modes).map((category) => {
+              const isHidden = hiddenCategories.includes(category)
+              return (
+                <tr key={category} className={isHidden ? 'inactive' : undefined}>
+                  <td>
+                    {category === '' ? (
+                      <span className="muted">{t('Chưa phân loại')}</span>
+                    ) : (
+                      <input
+                        type="text"
+                        value={categoryNames[category] ?? category}
+                        aria-label={t('Tên danh mục {name}', { name: category })}
+                        onChange={(e) => setCategoryNames((ns) => ({ ...ns, [category]: e.target.value }))}
+                      />
+                    )}
+                  </td>
+                  <td>
+                    <select
+                      value={modes[category] ?? 'set'}
+                      onChange={(e) => setModes((m) => ({ ...m, [category]: e.target.value as 'set' | 'single' }))}
+                    >
+                      <option value="set">{t('Bán theo set 4 / 6 hũ')}</option>
+                      <option value="single">{t('Bán lẻ từng phần')}</option>
+                    </select>
+                  </td>
+                  <td style={{ textAlign: 'center' }}>
+                    <span className={`badge ${isHidden ? 'badge-low' : 'badge-ok'}`}>
+                      {isHidden ? t('Chờ mở gom') : t('Đang mở bán')}
+                    </span>
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <button
+                      type="button"
+                      className={isHidden ? 'link' : 'link danger'}
+                      onClick={() =>
+                        setHiddenCategories((hs) =>
+                          hs.includes(category) ? hs.filter((c) => c !== category) : [...hs, category],
+                        )
+                      }
+                    >
+                      {isHidden ? t('Mở bán lại') : t('Chờ mở gom')}
+                    </button>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
 
       <h3 className="card-title">{t('Giá set')}</h3>
       <small className="muted">

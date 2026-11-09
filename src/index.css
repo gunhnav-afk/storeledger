@@ -767,6 +767,14 @@ th {
   font-weight: 600;
   background: var(--surface-2);
 }
+.storefront-cat-table td {
+  vertical-align: middle;
+}
+.storefront-cat-table input,
+.storefront-cat-table select {
+  width: 100%;
+  min-height: 38px;
+}
 .num {
   text-align: right;
   font-variant-numeric: tabular-nums;

@@ -1181,6 +1181,7 @@ export const zh: Record<string, string> = {
   'Trạng thái trên web': '网站状态',
   'Đang mở bán': '售卖中',
   'Đổi tên': '重命名',
+  'Cách bán': '售卖方式',
   'Chờ mở gom (tắt nhận đơn trên web)': '待开团（暂停网页下单）',
   'Chờ mở gom': '待开团',
   'Đã chuyển danh mục "{name}" sang chờ mở gom': '已将分类"{name}"设置为待开团',

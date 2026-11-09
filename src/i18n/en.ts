@@ -1181,6 +1181,7 @@ export const en: Record<string, string> = {
   'Trạng thái trên web': 'Website status',
   'Đang mở bán': 'On sale',
   'Đổi tên': 'Rename',
+  'Cách bán': 'Sale mode',
   'Chờ mở gom (tắt nhận đơn trên web)': 'Waiting for group order (orders disabled)',
   'Chờ mở gom': 'Waiting for group order',
   'Đã chuyển danh mục "{name}" sang chờ mở gom': 'Switched category "{name}" to waiting for group order',

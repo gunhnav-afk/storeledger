@@ -1181,6 +1181,7 @@ export const ja: Record<string, string> = {
   'Trạng thái trên web': 'Web表示状態',
   'Đang mở bán': '販売中',
   'Đổi tên': '名前変更',
+  'Cách bán': '販売方法',
   'Chờ mở gom (tắt nhận đơn trên web)': '共同購入受付待ち（Web注文停止）',
   'Chờ mở gom': '受付待ち',
   'Đã chuyển danh mục "{name}" sang chờ mở gom': 'カテゴリ「{name}」を受付待ちに設定しました',
