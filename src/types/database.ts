@@ -37,6 +37,8 @@ export type Store = {
   // QR thanh toán gốc (EMVCo) và tên ví / ngân hàng hiện cho khách, 20261025200000_storefront_payment_qr.sql
   public_qr_payload: string | null
   public_qr_label: string | null
+  // Các danh mục đang tạm tắt trên trang đặt trước công khai (20261109092002_storefront_hidden_categories.sql)
+  public_hidden_categories?: string[]
   created_at: string
 }
 
@@ -313,6 +315,7 @@ export type StoreInsert = {
   public_bank_holder?: string | null
   public_qr_payload?: string | null
   public_qr_label?: string | null
+  public_hidden_categories?: string[]
   created_at?: string
 }
 export type StoreUpdate = Partial<StoreInsert>

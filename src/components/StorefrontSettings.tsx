@@ -7,6 +7,7 @@ import { errorMessage } from '../lib/format'
 import { BANKS } from '../lib/banks'
 import { describePayload, payloadError } from '../lib/emvQr'
 import { pageColour, withSlip } from '../lib/slip'
+import { clearCachedMenu } from '../lib/storefront'
 
 // Một dòng giá set: cỡ set, áp dụng cho ('' = set mix vị chung, 'cat:<nhóm>' = set mix vị của nhóm món, còn lại là mã vị), giá (chuỗi để cho phép ô trống khi gõ)
 type RuleDraft = { uid: number; size: 4 | 6; productId: string; price: string }
@@ -26,6 +27,10 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
   const [products, setProducts] = useState<ProductOption[]>([])
   // Cách bán từng dòng món trên trang khách: theo set hoặc lẻ (lưu cho mọi món cùng nhóm)
   const [modes, setModes] = useState<Record<string, 'set' | 'single'>>({})
+  // Các danh mục đang tạm tắt trên trang đặt hàng công khai
+  const [hiddenCategories, setHiddenCategories] = useState<string[]>([])
+  // Tên hiển thị / đổi tên danh mục
+  const [categoryNames, setCategoryNames] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [payMethod, setPayMethod] = useState<'qr' | 'bank' | 'none'>('qr')
@@ -34,7 +39,7 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
   useEffect(() => {
     let cancelled = false
     Promise.all([
-      supabase.from('stores').select('is_public, public_phone, public_tagline, public_bank_code, public_bank_account, public_bank_holder, public_qr_payload, public_qr_label').eq('id', storeId).single(),
+      supabase.from('stores').select('is_public, public_phone, public_tagline, public_bank_code, public_bank_account, public_bank_holder, public_qr_payload, public_qr_label, public_hidden_categories').eq('id', storeId).single(),
       supabase.from('storefront_set_prices').select('*').eq('store_id', storeId).order('set_size').order('created_at'),
       supabase.from('products').select('id, name, category, public_sale_mode').eq('store_id', storeId).eq('is_active', true).order('name'),
     ]).then(([store, prices, prods]) => {
@@ -58,8 +63,11 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
           ? 'bank'
           : 'none'
       setPayMethod(initialMethod)
-      setProducts(prods.data ?? [])
-      setModes(Object.fromEntries((prods.data ?? []).map((p) => [p.category ?? '', p.public_sale_mode])))
+      const list = prods.data ?? []
+      setProducts(list)
+      setModes(Object.fromEntries(list.map((p) => [p.category ?? '', p.public_sale_mode])))
+      setCategoryNames(Object.fromEntries(list.map((p) => [p.category ?? '', p.category ?? ''])))
+      setHiddenCategories(data.public_hidden_categories ?? [])
       setRules(
         prices.data.map((r) => ({
           uid: nextUid++,
@@ -83,10 +91,20 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
     e.preventDefault()
     setError(null)
 
+    for (const cat of Object.keys(modes)) {
+      if (cat !== '' && !(categoryNames[cat] ?? cat).trim()) {
+        return setError('Nhập tên danh mục')
+      }
+    }
+    const mappedCat = (cat: string | null) => {
+      if (!cat) return null
+      return (categoryNames[cat] ?? cat).trim() || cat
+    }
+
     const parsed = rules.map((r) => ({
       size: r.size,
       product_id: r.productId && !r.productId.startsWith('cat:') ? r.productId : null,
-      category: r.productId.startsWith('cat:') ? r.productId.slice(4) : null,
+      category: r.productId.startsWith('cat:') ? mappedCat(r.productId.slice(4)) : null,
       price: Number(digits(r.price)),
     }))
     if (parsed.some((r) => !(r.price > 0 && r.price <= 100_000_000))) return setError('Giá set phải là số lớn hơn 0')
@@ -123,6 +141,8 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
       saveHolder = holder
     }
 
+    const savedHidden = [...new Set(hiddenCategories.map((c) => (c === '' ? '' : (categoryNames[c] ?? c).trim())))]
+
     setSaving(true)
     const { error: err } = await supabase
       .from('stores')
@@ -135,16 +155,43 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
         public_bank_holder: saveHolder,
         public_qr_payload: saveQrPayload,
         public_qr_label: saveQrLabel,
+        public_hidden_categories: savedHidden,
       })
       .eq('id', storeId)
     let saved: { error: unknown } = err ? { error: err } : await supabase.rpc('save_storefront_set_prices', { p_store_id: storeId, p_rules: parsed })
     for (const [category, mode] of Object.entries(modes)) {
       if (saved.error) break
-      const ids = products.filter((p) => (p.category ?? '') === category && p.public_sale_mode !== mode).map((p) => p.id)
-      if (ids.length) saved = await supabase.from('products').update({ public_sale_mode: mode }).in('id', ids)
+      const nextCat = category === '' ? null : (categoryNames[category] ?? category).trim()
+      const renamed = category !== '' && nextCat !== category
+      const ids = products
+        .filter((p) => (p.category ?? '') === category && (p.public_sale_mode !== mode || renamed))
+        .map((p) => p.id)
+      if (ids.length) {
+        saved = await supabase
+          .from('products')
+          .update(renamed ? { public_sale_mode: mode, category: nextCat } : { public_sale_mode: mode })
+          .in('id', ids)
+      }
     }
     setSaving(false)
     if (saved.error) return setError(errorMessage(saved.error))
+    const nextProds = products.map((p) => {
+      const cat = p.category ?? ''
+      const nextCat = cat === '' ? null : (categoryNames[cat] ?? cat).trim()
+      return { ...p, category: nextCat, public_sale_mode: modes[cat] ?? p.public_sale_mode }
+    })
+    setProducts(nextProds)
+    setModes(Object.fromEntries(nextProds.map((p) => [p.category ?? '', p.public_sale_mode])))
+    setCategoryNames(Object.fromEntries(nextProds.map((p) => [p.category ?? '', p.category ?? ''])))
+    setHiddenCategories(savedHidden)
+    setRules((rs) =>
+      rs.map((r) =>
+        r.productId.startsWith('cat:')
+          ? { ...r, productId: `cat:${mappedCat(r.productId.slice(4)) ?? ''}` }
+          : r,
+      ),
+    )
+    clearCachedMenu(code)
     toast.success(t('Đã lưu cài đặt trang bán hàng'))
     onSaved?.()
   }
@@ -191,15 +238,59 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
       </label>
 
       <h3 className="card-title">{t('Cách bán trên trang khách')}</h3>
-      {Object.keys(modes).map((category) => (
-        <label key={category}>
-          {category || t('Chưa phân loại')}
-          <select value={modes[category]} onChange={(e) => setModes((m) => ({ ...m, [category]: e.target.value as 'set' | 'single' }))}>
-            <option value="set">{t('Bán theo set 4 / 6 hũ')}</option>
-            <option value="single">{t('Bán lẻ từng phần')}</option>
-          </select>
-        </label>
-      ))}
+      <small className="muted">
+        {t('Bật hoặc tạm tắt từng danh mục trên trang đặt hàng. Khi tạm tắt, món và bảng giá vẫn giữ nguyên để mở bán lại bất cứ lúc nào.')}
+      </small>
+      {Object.keys(modes).map((category) => {
+        const isHidden = hiddenCategories.includes(category)
+        return (
+          <div key={category} className="row rule-row">
+            <label>
+              {t('Danh mục')}
+              {category === '' ? (
+                <input type="text" value={t('Chưa phân loại')} disabled />
+              ) : (
+                <input
+                  type="text"
+                  value={categoryNames[category] ?? category}
+                  aria-label={t('Tên danh mục {name}', { name: category })}
+                  onChange={(e) => setCategoryNames((ns) => ({ ...ns, [category]: e.target.value }))}
+                />
+              )}
+            </label>
+            <label>
+              {t('Trạng thái & cách bán')}
+              <select
+                value={isHidden ? 'hidden' : modes[category]}
+                onChange={(e) => {
+                  const val = e.target.value
+                  if (val === 'hidden') {
+                    setHiddenCategories((hs) => (hs.includes(category) ? hs : [...hs, category]))
+                  } else {
+                    setHiddenCategories((hs) => hs.filter((c) => c !== category))
+                    setModes((m) => ({ ...m, [category]: val as 'set' | 'single' }))
+                  }
+                }}
+              >
+                <option value="set">{t('Bán theo set 4 / 6 hũ')}</option>
+                <option value="single">{t('Bán lẻ từng phần')}</option>
+                <option value="hidden">{t('Tạm tắt trên trang khách')}</option>
+              </select>
+            </label>
+            <button
+              type="button"
+              className={isHidden ? 'link' : 'link danger'}
+              onClick={() =>
+                setHiddenCategories((hs) =>
+                  hs.includes(category) ? hs.filter((c) => c !== category) : [...hs, category],
+                )
+              }
+            >
+              {isHidden ? t('Mở bán lại') : t('Tạm tắt')}
+            </button>
+          </div>
+        )
+      })}
 
       <h3 className="card-title">{t('Giá set')}</h3>
       <small className="muted">

@@ -406,3 +406,13 @@ export function setCachedMenu(code: string, menu: PublicMenu, storage?: { setIte
     // Không làm gián đoạn nếu bộ nhớ đầy hoặc chế độ ẩn danh
   }
 }
+
+export function clearCachedMenu(code: string, storage?: { removeItem: (k: string) => void }): void {
+  const s = storage ?? (typeof window !== 'undefined' ? window.sessionStorage : null)
+  if (!s || !code) return
+  try {
+    s.removeItem(MENU_CACHE_PREFIX + code)
+  } catch {
+    // Không làm gián đoạn nếu chế độ ẩn danh chặn storage
+  }
+}

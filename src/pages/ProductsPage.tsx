@@ -5,10 +5,11 @@ import { ProductImageEditor } from '../components/ProductImageEditor'
 import { supabase } from '../lib/supabase'
 import { useI18n } from '../lib/i18n'
 import { useToast } from '../lib/toast'
+import { usePrompt } from '../lib/confirm'
 import { useStore } from '../lib/store'
 import { MAX_MONEY, errorMessage, formatDate, formatVND, todayVN } from '../lib/format'
 import { usesPartnerChannel } from '../lib/storeFeatures'
-import { menuImage } from '../lib/storefront'
+import { clearCachedMenu, menuImage } from '../lib/storefront'
 import { frameStyle } from '../lib/productImage'
 import type { Product, ProductPrice, StorePriceRow } from '../types/database'
 
@@ -38,6 +39,8 @@ type Catalog = {
   prices: Map<string, StorePriceRow>
   // Toàn bộ lịch sử giá của cửa hàng, mới nhất trước (product_prices, chỉ admin)
   history: ProductPrice[]
+  // Danh mục đang tạm tắt trên trang đặt trước công khai
+  hiddenCategories: string[]
   error: string | null
 }
 
@@ -77,13 +80,32 @@ function effectiveAt(history: ProductPrice[], productId: string, date: string) {
 
 export function ProductsPage() {
   const { current } = useStore()
-  return current ? <ProductsManager key={current.id} storeId={current.id} partner={usesPartnerChannel(current.code)} /> : null
+  return current ? (
+    <ProductsManager
+      key={current.id}
+      storeId={current.id}
+      code={current.code}
+      isPublic={current.is_public}
+      partner={usesPartnerChannel(current.code)}
+    />
+  ) : null
 }
 
 // Chỉ admin (route bọc RequireAdmin, RLS cũng chặn ghi)
-function ProductsManager({ storeId, partner }: { storeId: string; partner: boolean }) {
+function ProductsManager({
+  storeId,
+  code,
+  isPublic,
+  partner,
+}: {
+  storeId: string
+  code: string
+  isPublic: boolean
+  partner: boolean
+}) {
   const { t } = useI18n()
   const toast = useToast()
+  const prompt = usePrompt()
   const [catalog, setCatalog] = useState<Catalog | null>(null)
   const [version, setVersion] = useState(0)
   const [editing, setEditing] = useState<Product | null>(null)
@@ -107,7 +129,8 @@ function ProductsManager({ storeId, partner }: { storeId: string; partner: boole
     Promise.all([
       supabase.from('products').select('*').eq('store_id', storeId).order('name'),
       supabase.rpc('get_store_prices', { p_store_id: storeId, p_date: today }),
-    ]).then(async ([products, prices]) => {
+      supabase.from('stores').select('public_hidden_categories').eq('id', storeId).single(),
+    ]).then(async ([products, prices, storeRow]) => {
       const ids = (products.data ?? []).map((p) => p.id)
       const history =
         ids.length === 0
@@ -118,11 +141,12 @@ function ProductsManager({ storeId, partner }: { storeId: string; partner: boole
               .in('product_id', ids)
               .order('effective_from', { ascending: false })
       if (cancelled) return
-      const error = products.error ?? prices.error ?? history.error
+      const error = products.error ?? prices.error ?? history.error ?? storeRow.error
       setCatalog({
         products: products.data ?? [],
         prices: new Map((prices.data ?? []).map((r) => [r.product_id, r])),
         history: history.data ?? [],
+        hiddenCategories: storeRow.data?.public_hidden_categories ?? [],
         error: error ? errorMessage(error) : null,
       })
     })
@@ -132,6 +156,63 @@ function ProductsManager({ storeId, partner }: { storeId: string; partner: boole
   }, [storeId, version, today])
 
   const refresh = () => setVersion((v) => v + 1)
+
+  const toggleCategory = async (category: string) => {
+    if (!catalog) return
+    const isHidden = catalog.hiddenCategories.includes(category)
+    const next = isHidden
+      ? catalog.hiddenCategories.filter((c) => c !== category)
+      : [...catalog.hiddenCategories, category]
+    const { error } = await supabase
+      .from('stores')
+      .update({ public_hidden_categories: next })
+      .eq('id', storeId)
+    if (error) return setResult({ ok: false, text: errorMessage(error) })
+    clearCachedMenu(code)
+    setCatalog({ ...catalog, hiddenCategories: next })
+    const label = category || t('Chưa phân loại')
+    toast.success(
+      isHidden
+        ? t('Đã mở bán lại danh mục "{name}" trên trang khách', { name: label })
+        : t('Đã tạm tắt danh mục "{name}" trên trang khách', { name: label }),
+    )
+  }
+
+  const renameCategory = async (oldCategory: string) => {
+    if (!catalog || !oldCategory) return
+    const nextRaw = await prompt({
+      title: t('Đổi tên danh mục'),
+      defaultValue: oldCategory,
+      confirmText: t('Lưu'),
+      cancelText: t('Huỷ'),
+    })
+    if (nextRaw === null) return
+    const nextName = nextRaw.trim()
+    if (!nextName || nextName === oldCategory) return
+    const ids = catalog.products.filter((p) => (p.category ?? '') === oldCategory).map((p) => p.id)
+    if (ids.length === 0) return
+    const { error: prodErr } = await supabase.from('products').update({ category: nextName }).in('id', ids)
+    if (prodErr) return setResult({ ok: false, text: errorMessage(prodErr) })
+    if (catalog.hiddenCategories.includes(oldCategory)) {
+      const nextHidden = [...new Set(catalog.hiddenCategories.map((c) => (c === oldCategory ? nextName : c)))]
+      await supabase.from('stores').update({ public_hidden_categories: nextHidden }).eq('id', storeId)
+    }
+    const { data: setPriceRows } = await supabase.from('storefront_set_prices').select('*').eq('store_id', storeId)
+    if (setPriceRows?.some((r) => r.category === oldCategory)) {
+      await supabase.rpc('save_storefront_set_prices', {
+        p_store_id: storeId,
+        p_rules: setPriceRows.map((r) => ({
+          size: r.set_size,
+          product_id: r.product_id,
+          category: r.category === oldCategory ? nextName : r.category,
+          price: Number(r.price),
+        })),
+      })
+    }
+    clearCachedMenu(code)
+    toast.success(t('Đã đổi danh mục "{old}" thành "{name}"', { old: oldCategory, name: nextName }))
+    refresh()
+  }
 
   const startEdit = (row: Product) => {
     setResult(null)
@@ -347,6 +428,60 @@ function ProductsManager({ storeId, partner }: { storeId: string; partner: boole
       )}
 
       {result && <p className={result.ok ? 'success' : 'error'}>{t(result.text)}</p>}
+
+      {isPublic && catalog.products.length > 0 && (
+        <>
+          <div className="section-head">
+            <h2>{t('Danh mục trên trang đặt hàng')}</h2>
+          </div>
+          <p className="section-note muted">
+            {t('Tạm tắt danh mục để ẩn khỏi web đặt hàng mà không mất món hay bảng giá; khi cần bán lại chỉ cần bấm "Mở bán lại".')}
+          </p>
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>{t('Danh mục')}</th>
+                  <th className="num">{t('Số món')}</th>
+                  <th>{t('Trạng thái trên web')}</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {[...new Set(catalog.products.filter((p) => p.is_active).map((p) => p.category ?? ''))].map((cat) => {
+                  const count = catalog.products.filter((p) => p.is_active && (p.category ?? '') === cat).length
+                  const isHidden = catalog.hiddenCategories.includes(cat)
+                  return (
+                    <tr key={cat || '__uncat'} className={isHidden ? 'inactive' : undefined}>
+                      <td>{cat || t('Chưa phân loại')}</td>
+                      <td className="num">{count}</td>
+                      <td>
+                        <span className={`badge ${isHidden ? 'badge-out' : 'badge-ok'}`}>
+                          {isHidden ? t('Tạm tắt') : t('Đang mở bán')}
+                        </span>
+                      </td>
+                      <td className="actions">
+                        {cat !== '' && (
+                          <button type="button" className="link" onClick={() => renameCategory(cat)}>
+                            {t('Đổi tên')}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className={isHidden ? 'link' : 'link danger'}
+                          onClick={() => toggleCategory(cat)}
+                        >
+                          {isHidden ? t('Mở bán lại') : t('Tạm tắt')}
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
 
       <div className="section-head">
         <h2>{t('Danh sách sản phẩm')}</h2>
