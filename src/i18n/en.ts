@@ -1181,4 +1181,8 @@ export const en: Record<string, string> = {
   'Trạng thái trên web': 'Website status',
   'Đang mở bán': 'On sale',
   'Đổi tên': 'Rename',
+  'Chờ mở gom (tắt nhận đơn trên web)': 'Waiting for group order (orders disabled)',
+  'Chờ mở gom': 'Waiting for group order',
+  'Đã chuyển danh mục "{name}" sang chờ mở gom': 'Switched category "{name}" to waiting for group order',
+  'Gắn tag "Chờ mở gom" để hiển thị danh mục trên web nhưng tạm dừng nhận đơn; khi gom xong chỉ cần bấm "Mở bán lại".': 'Tag as "Waiting for group order" to display on the web while pausing orders; click "Re-enable" when ready to sell.',
 }

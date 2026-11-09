@@ -1181,4 +1181,8 @@ export const ko: Record<string, string> = {
   'Trạng thái trên web': '웹 상태',
   'Đang mở bán': '판매 중',
   'Đổi tên': '이름 변경',
+  'Chờ mở gom (tắt nhận đơn trên web)': '공구 모집 대기 (웹 주문 중지)',
+  'Chờ mở gom': '공구 대기',
+  'Đã chuyển danh mục "{name}" sang chờ mở gom': '"{name}" 카테고리를 공구 대기 상태로 변경했습니다',
+  'Gắn tag "Chờ mở gom" để hiển thị danh mục trên web nhưng tạm dừng nhận đơn; khi gom xong chỉ cần bấm "Mở bán lại".': '웹에 카테고리를 노출하되 주문은 받지 않으려면 "공구 대기" 태그를 지정하세요. 준비되면 "다시 판매"를 누르면 됩니다.',
 }

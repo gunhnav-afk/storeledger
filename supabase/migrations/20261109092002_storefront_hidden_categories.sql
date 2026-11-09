@@ -61,7 +61,6 @@ begin
     from public.products p
     where p.store_id = v_store.id
       and p.is_active
-      and not (coalesce(p.category, '') = any (coalesce(v_store.public_hidden_categories, '{}')))
   ) i;
 
   select coalesce(
@@ -77,7 +76,8 @@ begin
 
   return jsonb_build_object(
     'store', jsonb_build_object('name', v_store.name, 'phone', v_store.public_phone, 'tagline', v_store.public_tagline,
-                                'domain', v_store.public_contact_domain, 'floors', v_store.public_floors, 'chat_url', v_store.public_chat_url, 'contact_email', v_store.public_contact_email, 'bank', v_bank, 'pay', v_pay, 'set_prices', v_prices),
+                                'domain', v_store.public_contact_domain, 'floors', v_store.public_floors, 'chat_url', v_store.public_chat_url, 'contact_email', v_store.public_contact_email, 'bank', v_bank, 'pay', v_pay, 'set_prices', v_prices,
+                                'disabled_categories', coalesce(to_jsonb(v_store.public_hidden_categories), '[]'::jsonb)),
     'items', v_items
   );
 end;

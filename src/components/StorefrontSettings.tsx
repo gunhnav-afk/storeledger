@@ -274,7 +274,7 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
               >
                 <option value="set">{t('Bán theo set 4 / 6 hũ')}</option>
                 <option value="single">{t('Bán lẻ từng phần')}</option>
-                <option value="hidden">{t('Tạm tắt trên trang khách')}</option>
+                <option value="hidden">{t('Chờ mở gom (tắt nhận đơn trên web)')}</option>
               </select>
             </label>
             <button
@@ -286,7 +286,7 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
                 )
               }
             >
-              {isHidden ? t('Mở bán lại') : t('Tạm tắt')}
+              {isHidden ? t('Mở bán lại') : t('Chờ mở gom')}
             </button>
           </div>
         )

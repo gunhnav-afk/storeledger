@@ -21,6 +21,7 @@ import {
   getCachedMenu,
   setCachedMenu,
   isSingle,
+  isLineDisabled,
   flavorNote,
   lineOf,
   menuLines,
@@ -155,12 +156,19 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
       if (next) {
         setCachedMenu(code, next)
         setCart((c) => refreshCart(c, next.items, next.store))
-        const firstLine = menuLines(next.items)[0] ?? ''
-        const firstList = next.items.filter((i) => lineOf(i) === firstLine)
+        const firstLine = menuLines(next.items).find((l) => !isLineDisabled(l, next.store)) ?? ''
+        const firstList = firstLine ? next.items.filter((i) => lineOf(i) === firstLine) : []
         if (firstList.length === 1 && !isSingle(firstList[0])) {
           setMix({ [firstList[0].id]: 4 })
         } else {
-          setMix((m) => Object.fromEntries(Object.entries(m).filter(([id]) => next.items.some((i) => i.id === id))))
+          setMix((m) =>
+            Object.fromEntries(
+              Object.entries(m).filter(([id]) => {
+                const found = next.items.find((i) => i.id === id)
+                return Boolean(found && !isLineDisabled(lineOf(found), next.store))
+              })
+            )
+          )
         }
       }
     } finally {
@@ -192,8 +200,10 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
   const store = menu?.store
 
   const lines = useMemo(() => menuLines(items), [items])
-  const activeLine = lines.includes(line) ? line : (lines[0] ?? '')
-  const lineItems = useMemo(() => items.filter((i) => lineOf(i) === activeLine), [items, activeLine])
+  const defaultLine = useMemo(() => lines.find((l) => !isLineDisabled(l, store)) ?? lines[0] ?? '', [lines, store])
+  const activeLine = lines.includes(line) ? line : defaultLine
+  const lineItems = useMemo(() => (activeLine ? items.filter((i) => lineOf(i) === activeLine) : []), [items, activeLine])
+  const isLineGom = useMemo(() => Boolean(store && isLineDisabled(activeLine, store)), [activeLine, store])
 
   const picked = mixCount(mix)
   const unitPrice = useMemo(() => (picked === size && store ? setPrice(size, mix, items, store) : null), [picked, size, store, mix, items])
@@ -275,12 +285,16 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
 
   const chooseSize = (s: SetSize) => {
     setSize(s)
-    setMix(autoMixFor(activeLine, s))
+    if (!isLineGom) setMix(autoMixFor(activeLine, s))
     setCopies(1)
   }
   const chooseLine = (l: string) => {
     setLine(l)
-    setMix(autoMixFor(l, size))
+    if (isLineDisabled(l, store)) {
+      setMix({})
+    } else {
+      setMix(autoMixFor(l, size))
+    }
     setCopies(1)
   }
   const addToCart = () => {
@@ -399,17 +413,41 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
           <>
             {lines.length > 1 && (
               <div className="shop-tabs" role="tablist" aria-label="Loại món">
-                {lines.map((l) => (
-                  <m.button key={l} type="button" role="tab" aria-selected={activeLine === l} className={activeLine === l ? 'active' : undefined} whileTap={{ scale: 0.95 }} transition={SPRING} onClick={() => chooseLine(l)}>
-                    {l}
-                  </m.button>
-                ))}
+                {lines.map((l) => {
+                  const disabled = isLineDisabled(l, store)
+                  const selected = activeLine === l
+                  return (
+                    <m.button
+                      key={l}
+                      type="button"
+                      role="tab"
+                      aria-selected={selected}
+                      className={`${selected ? 'active' : ''}${disabled ? ' is-disabled' : ''}`.trim() || undefined}
+                      whileTap={{ scale: 0.96 }}
+                      transition={SPRING}
+                      onClick={() => chooseLine(l)}
+                    >
+                      <span>{l}</span>
+                      {disabled && <span className="shop-tab-tag">Chờ mở gom</span>}
+                    </m.button>
+                  )
+                })}
               </div>
             )}
 
-            {singleLine && <p className="shop-sub">Bán lẻ theo từng phần, không cần chọn set. Bấm + để thêm vào đơn.</p>}
+            {isLineGom && (
+              <div className="shop-disabled-banner" role="status">
+                <span className="shop-disabled-icon" aria-hidden="true">🥣</span>
+                <div>
+                  <strong>Danh mục đang chờ mở gom</strong>
+                  <p>Quán tạm thời chưa nhận đặt trước cho danh mục này. Bạn có thể xem thực đơn và theo dõi đợt mở gom tiếp theo nhé!</p>
+                </div>
+              </div>
+            )}
 
-            {!singleLine && (
+            {singleLine && !isLineGom && <p className="shop-sub">Bán lẻ theo từng phần, không cần chọn set. Bấm + để thêm vào đơn.</p>}
+
+            {!singleLine && !isLineGom && (
             <div className="shop-sizes" role="radiogroup" aria-label="Cỡ set">
               {SET_SIZES.map((s) => {
                 const h = sizeHints[s] ?? []
@@ -442,11 +480,12 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
                 const ok = single ? item.price !== null : selectable(item, size, store)
                 return (
                   <div key={item.id} className="shop-card-wrap">
-                  <article className={`shop-card${n > 0 ? ' is-picked' : ''}${ok ? '' : ' is-out'}`}>
+                  <article className={`shop-card${n > 0 ? ' is-picked' : ''}${ok && !isLineGom ? '' : ' is-out'}`}>
                     <div className="shop-art" style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }} aria-hidden="true">
+                      {isLineGom && <span className="shop-badge-gom">Chờ mở gom</span>}
                       {image ? <img src={image.src} alt="" loading="lazy" width={520} height={430} style={frameStyle(image.frame)} /> : <span>{flavorEmoji(item.name)}</span>}
                       <AnimatePresence>
-                        {n > 0 && (
+                        {n > 0 && !isLineGom && (
                           <m.span key="picked" className="shop-picked" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={SPRING}>
                             {n}
                           </m.span>
@@ -464,7 +503,12 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
                           <small> / {unitOf(item.name)}</small>
                         </p>
                       )}
-                      {ok && single ? (
+                      {isLineGom ? (
+                        <div className="shop-btn-disabled">
+                          <span className="shop-dot-amber" aria-hidden="true" />
+                          Chờ mở gom
+                        </div>
+                      ) : ok && single ? (
                         <div className="shop-qty" role="group" aria-label={`Số lượng ${item.name}`}>
                           <m.button type="button" aria-label={`Bớt ${item.name}`} disabled={n === 0} whileTap={{ scale: 0.85 }} transition={SPRING} onClick={() => setCart((c) => setSingleQty(c, item, n - 1))}>
                             −
@@ -494,7 +538,7 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
               })}
             </div>
 
-            {!singleLine && (
+            {!singleLine && !isLineGom && (
             <div className={`shop-builder${count > 0 ? ' has-cartbar' : ''}`} aria-live="polite">
               <div className="shop-builder-info">
                 <div className={`shop-dots shop-dots-${size}`} aria-hidden="true">

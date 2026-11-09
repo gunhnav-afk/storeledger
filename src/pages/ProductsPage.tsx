@@ -174,7 +174,7 @@ function ProductsManager({
     toast.success(
       isHidden
         ? t('Đã mở bán lại danh mục "{name}" trên trang khách', { name: label })
-        : t('Đã tạm tắt danh mục "{name}" trên trang khách', { name: label }),
+        : t('Đã chuyển danh mục "{name}" sang chờ mở gom', { name: label }),
     )
   }
 
@@ -435,7 +435,7 @@ function ProductsManager({
             <h2>{t('Danh mục trên trang đặt hàng')}</h2>
           </div>
           <p className="section-note muted">
-            {t('Tạm tắt danh mục để ẩn khỏi web đặt hàng mà không mất món hay bảng giá; khi cần bán lại chỉ cần bấm "Mở bán lại".')}
+            {t('Gắn tag "Chờ mở gom" để hiển thị danh mục trên web nhưng tạm dừng nhận đơn; khi gom xong chỉ cần bấm "Mở bán lại".')}
           </p>
           <div className="table-wrap">
             <table>
@@ -456,8 +456,8 @@ function ProductsManager({
                       <td>{cat || t('Chưa phân loại')}</td>
                       <td className="num">{count}</td>
                       <td>
-                        <span className={`badge ${isHidden ? 'badge-out' : 'badge-ok'}`}>
-                          {isHidden ? t('Tạm tắt') : t('Đang mở bán')}
+                        <span className={`badge ${isHidden ? 'badge-low' : 'badge-ok'}`}>
+                          {isHidden ? t('Chờ mở gom') : t('Đang mở bán')}
                         </span>
                       </td>
                       <td className="actions">
@@ -471,7 +471,7 @@ function ProductsManager({
                           className={isHidden ? 'link' : 'link danger'}
                           onClick={() => toggleCategory(cat)}
                         >
-                          {isHidden ? t('Mở bán lại') : t('Tạm tắt')}
+                          {isHidden ? t('Mở bán lại') : t('Chờ mở gom')}
                         </button>
                       </td>
                     </tr>

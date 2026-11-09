@@ -37,6 +37,7 @@ export type PublicStore = {
   floors: string[] | null
   chat_url?: string | null
   contact_email?: string | null
+  disabled_categories?: string[] | null
 }
 export type PublicMenu = { store: PublicStore; items: MenuItem[] }
 
@@ -59,6 +60,13 @@ type Pricing = Pick<PublicStore, 'set_prices'>
 
 // Dòng món (nhóm) của một vị: Sữa chua, Bánh flan... Các dòng khác nhau không trộn chung một set
 export const lineOf = (item: Pick<MenuItem, 'category'>) => item.category ?? 'Thực đơn'
+
+// Danh mục đang tạm tắt / chờ mở gom trên trang đặt trước
+export function isLineDisabled(line: string, store?: Pick<PublicStore, 'disabled_categories'> | null): boolean {
+  const list = store?.disabled_categories
+  if (!list || list.length === 0) return false
+  return list.includes(line) || (line === 'Thực đơn' && list.includes(''))
+}
 
 // Các dòng món trên thực đơn, dòng có nhiều vị đứng trước
 export function menuLines(items: MenuItem[]): string[] {
@@ -183,9 +191,9 @@ export function setLineQty(lines: CartLine[], key: string, qty: number): CartLin
   return lines.map((l) => (l.key === key ? { ...l, qty: Math.min(MAX_SETS, qty) } : l))
 }
 
-// Bỏ dòng có vị đã không còn trên thực đơn (sau khi thực đơn được tải lại) và cập nhật giá mới
-export function refreshCart(lines: CartLine[], items: MenuItem[], store: Pricing): CartLine[] {
-  const byId = new Map(items.map((i) => [i.id, i]))
+// Bỏ dòng có vị đã không còn trên thực đơn hoặc thuộc danh mục chờ mở gom (sau khi thực đơn được tải lại) và cập nhật giá mới
+export function refreshCart(lines: CartLine[], items: MenuItem[], store: Pricing & Pick<PublicStore, 'disabled_categories'>): CartLine[] {
+  const byId = new Map(items.filter((i) => !isLineDisabled(lineOf(i), store)).map((i) => [i.id, i]))
   const out: CartLine[] = []
   for (const l of lines) {
     if (l.kind === 'single') {

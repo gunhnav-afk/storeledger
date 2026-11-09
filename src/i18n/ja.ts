@@ -1181,4 +1181,8 @@ export const ja: Record<string, string> = {
   'Trạng thái trên web': 'Web表示状態',
   'Đang mở bán': '販売中',
   'Đổi tên': '名前変更',
+  'Chờ mở gom (tắt nhận đơn trên web)': '共同購入受付待ち（Web注文停止）',
+  'Chờ mở gom': '受付待ち',
+  'Đã chuyển danh mục "{name}" sang chờ mở gom': 'カテゴリ「{name}」を受付待ちに設定しました',
+  'Gắn tag "Chờ mở gom" để hiển thị danh mục trên web nhưng tạm dừng nhận đơn; khi gom xong chỉ cần bấm "Mở bán lại".': '「受付待ち」タグを付けると、Web上でカテゴリを表示しつつ注文受付を停止できます。準備ができたら「販売再開」を押してください。',
 }
