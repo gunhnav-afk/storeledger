@@ -779,6 +779,27 @@ th {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+/* Điện thoại: không bóp cột; bảng rộng hơn màn hình thì cuộn ngang trong .table-wrap */
+@media (max-width: 640px) {
+  th,
+  td {
+    padding: 9px 10px;
+  }
+  td {
+    font-size: 14px;
+  }
+  th {
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  td.num,
+  td.actions {
+    white-space: nowrap;
+  }
+  td:first-child {
+    min-width: 9em;
+  }
+}
 
 .badge {
   display: inline-block;
