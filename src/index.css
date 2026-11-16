@@ -5198,6 +5198,110 @@ input.overridden {
     grid-template-columns: minmax(320px, 1fr) minmax(360px, 1fr);
   }
 }
+/* Thanh lưu dính ngay dưới thanh trên: luôn thấy nút Lưu, không phải kéo xuống cuối form */
+.storefront-savebar {
+  position: sticky;
+  top: calc(var(--topbar-h, 0px) + 6px);
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.06);
+}
+.storefront-savebar.is-dirty {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent-soft) 70%, var(--surface));
+}
+.storefront-savebar-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.storefront-savebar.is-dirty .storefront-savebar-text {
+  color: var(--accent);
+}
+.storefront-savebar .primary {
+  min-height: 40px;
+}
+.storefront-savebar-error {
+  flex-basis: 100%;
+  margin: 0;
+}
+/* Nút chờ gom / mở bán lại: lưu ngay, đủ to để bấm trên điện thoại */
+.cat-toggle {
+  min-height: 38px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.cat-toggle.is-open {
+  background: var(--ok-bg);
+  color: var(--ok-fg);
+  border-color: var(--ok-fg);
+}
+.cat-toggle.danger {
+  color: var(--danger);
+}
+.storefront-cat-table tr.inactive td:last-child {
+  opacity: 1;
+}
+/* Điện thoại: mỗi danh mục là một thẻ, nút trạng thái nằm ngay dưới tên, không phải cuộn ngang */
+@media (max-width: 640px) {
+  .storefront-cat-table,
+  .storefront-cat-table tbody {
+    display: block;
+    width: 100%;
+  }
+  .storefront-cat-table thead {
+    display: none;
+  }
+  .storefront-cat-table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 10px;
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .storefront-cat-table tr:last-child {
+    border-bottom: none;
+  }
+  .storefront-cat-table td {
+    display: block;
+    min-width: 0 !important;
+    padding: 0;
+    border: none;
+    text-align: left !important;
+    white-space: normal;
+  }
+  .storefront-cat-table td:nth-child(1) {
+    grid-column: 1;
+    align-self: center;
+  }
+  .storefront-cat-table td:nth-child(3) {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+  }
+  .storefront-cat-table td:nth-child(2),
+  .storefront-cat-table td:nth-child(4) {
+    grid-column: 1 / -1;
+  }
+  .storefront-cat-table input,
+  .storefront-cat-table select,
+  .storefront-cat-table .cat-toggle {
+    width: 100%;
+    min-height: 44px;
+    font-size: 16px;
+  }
+}
 .storefront-preview iframe {
   width: 100%;
   height: 640px;

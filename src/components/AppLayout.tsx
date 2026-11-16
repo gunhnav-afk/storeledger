@@ -44,9 +44,25 @@ export function AppLayout() {
   const items = (revenueStore ? REVENUE_NAV_ITEMS : NAV_ITEMS).filter((item) => !item.adminOnly || isAdmin)
   const displayName = profile?.full_name || (isSuperAdmin ? 'Super Admin' : isAdmin ? 'Admin' : t('Nhân viên'))
 
+  // Chiều cao thanh trên (--topbar-h) để thanh lưu dính đặt ngay bên dưới
+  const topbarRef = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const el = topbarRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const root = document.documentElement
+    const sync = () => root.style.setProperty('--topbar-h', `${el.offsetHeight}px`)
+    sync()
+    const ro = new ResizeObserver(sync)
+    ro.observe(el)
+    return () => {
+      ro.disconnect()
+      root.style.removeProperty('--topbar-h')
+    }
+  }, [])
+
   return (
     <div className="layout">
-      <header className="topbar">
+      <header className="topbar" ref={topbarRef}>
         <div className="topbar-inner">
           <div className="topbar-row">
             <span className="brand">

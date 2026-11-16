@@ -17,6 +17,11 @@ type ProductOption = { id: string; name: string; category: string | null; public
 let nextUid = 1
 const digits = (text: string) => text.replace(/[^\d]/g, '')
 
+// Ảnh chụp các ô đang sửa để biết còn thay đổi chưa lưu (danh mục chờ gom lưu ngay nên không tính)
+type Draft = { form: Settings; rules: RuleDraft[]; modes: Record<string, 'set' | 'single'>; names: Record<string, string>; payMethod: string }
+const snapshot = (d: Draft) =>
+  JSON.stringify([d.form, d.rules.map((r) => [r.size, r.productId, r.price]), d.modes, d.names, d.payMethod])
+
 // Cài đặt trang bán hàng công khai /shop/<mã quán> (chỉ admin; RLS stores_update_admin chặn người khác)
 export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string; code: string; onSaved?: () => void }) {
   const { t } = useI18n()
@@ -34,6 +39,9 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [payMethod, setPayMethod] = useState<'qr' | 'bank' | 'none'>('qr')
+  const [savedSnap, setSavedSnap] = useState('')
+  // Danh mục đang lưu trạng thái chờ gom / mở bán
+  const [toggling, setToggling] = useState<string | null>(null)
   const link = code === 'hogi' ? 'https://hogifood.vercel.app' : `${window.location.origin}/shop/${code}`
 
   useEffect(() => {
@@ -47,7 +55,7 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
       const e = store.error ?? prices.error ?? prods.error
       if (e || !store.data || !prices.data) return setError(errorMessage(e ?? 'Không tải được cài đặt'))
       const data = store.data
-      setForm({
+      const nextForm: Settings = {
         is_public: data.is_public,
         public_phone: data.public_phone ?? '',
         public_tagline: data.public_tagline ?? '',
@@ -56,26 +64,29 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
         bankHolder: data.public_bank_holder ?? '',
         qrPayload: data.public_qr_payload ?? '',
         qrLabel: data.public_qr_label ?? '',
-      })
+      }
       const initialMethod: 'qr' | 'bank' | 'none' = data.public_qr_payload?.trim()
         ? 'qr'
         : (data.public_bank_code || data.public_bank_account)
           ? 'bank'
           : 'none'
-      setPayMethod(initialMethod)
       const list = prods.data ?? []
+      const nextModes = Object.fromEntries(list.map((p) => [p.category ?? '', p.public_sale_mode]))
+      const nextNames = Object.fromEntries(list.map((p) => [p.category ?? '', p.category ?? '']))
+      const nextRules: RuleDraft[] = prices.data.map((r) => ({
+        uid: nextUid++,
+        size: r.set_size,
+        productId: r.product_id ? r.product_id : r.category ? `cat:${r.category}` : '',
+        price: String(Number(r.price)),
+      }))
+      setForm(nextForm)
+      setPayMethod(initialMethod)
       setProducts(list)
-      setModes(Object.fromEntries(list.map((p) => [p.category ?? '', p.public_sale_mode])))
-      setCategoryNames(Object.fromEntries(list.map((p) => [p.category ?? '', p.category ?? ''])))
+      setModes(nextModes)
+      setCategoryNames(nextNames)
       setHiddenCategories(data.public_hidden_categories ?? [])
-      setRules(
-        prices.data.map((r) => ({
-          uid: nextUid++,
-          size: r.set_size,
-          productId: r.product_id ? r.product_id : r.category ? `cat:${r.category}` : '',
-          price: String(Number(r.price)),
-        }))
-      )
+      setRules(nextRules)
+      setSavedSnap(snapshot({ form: nextForm, rules: nextRules, modes: nextModes, names: nextNames, payMethod: initialMethod }))
     })
     return () => {
       cancelled = true
@@ -86,6 +97,26 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
   if (!form) return null
 
   const updateRule = (uid: number, patch: Partial<RuleDraft>) => setRules((rs) => rs.map((r) => (r.uid === uid ? { ...r, ...patch } : r)))
+  const dirty = savedSnap !== '' && snapshot({ form, rules, modes, names: categoryNames, payMethod }) !== savedSnap
+
+  // Chờ gom / mở bán lại lưu ngay, không phải kéo xuống bấm Lưu (tên danh mục giữ theo DB tới khi lưu đổi tên)
+  const toggleHidden = async (category: string) => {
+    const isHidden = hiddenCategories.includes(category)
+    const next = isHidden ? hiddenCategories.filter((c) => c !== category) : [...hiddenCategories, category]
+    setToggling(category)
+    const { error: err } = await supabase.from('stores').update({ public_hidden_categories: next }).eq('id', storeId)
+    setToggling(null)
+    if (err) return toast.error(t(errorMessage(err)))
+    setHiddenCategories(next)
+    clearCachedMenu(code)
+    const label = category || t('Chưa phân loại')
+    toast.success(
+      isHidden
+        ? t('Đã mở bán lại danh mục "{name}" trên trang khách', { name: label })
+        : t('Đã chuyển danh mục "{name}" sang chờ mở gom', { name: label }),
+    )
+    onSaved?.()
+  }
 
   const save = async (e: FormEvent) => {
     e.preventDefault()
@@ -180,17 +211,17 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
       const nextCat = cat === '' ? null : (categoryNames[cat] ?? cat).trim()
       return { ...p, category: nextCat, public_sale_mode: modes[cat] ?? p.public_sale_mode }
     })
-    setProducts(nextProds)
-    setModes(Object.fromEntries(nextProds.map((p) => [p.category ?? '', p.public_sale_mode])))
-    setCategoryNames(Object.fromEntries(nextProds.map((p) => [p.category ?? '', p.category ?? ''])))
-    setHiddenCategories(savedHidden)
-    setRules((rs) =>
-      rs.map((r) =>
-        r.productId.startsWith('cat:')
-          ? { ...r, productId: `cat:${mappedCat(r.productId.slice(4)) ?? ''}` }
-          : r,
-      ),
+    const nextModes = Object.fromEntries(nextProds.map((p) => [p.category ?? '', p.public_sale_mode]))
+    const nextNames = Object.fromEntries(nextProds.map((p) => [p.category ?? '', p.category ?? '']))
+    const nextRules = rules.map((r) =>
+      r.productId.startsWith('cat:') ? { ...r, productId: `cat:${mappedCat(r.productId.slice(4)) ?? ''}` } : r,
     )
+    setProducts(nextProds)
+    setModes(nextModes)
+    setCategoryNames(nextNames)
+    setHiddenCategories(savedHidden)
+    setRules(nextRules)
+    setSavedSnap(snapshot({ form, rules: nextRules, modes: nextModes, names: nextNames, payMethod }))
     clearCachedMenu(code)
     toast.success(t('Đã lưu cài đặt trang bán hàng'))
     onSaved?.()
@@ -212,6 +243,13 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
 
   return (
     <form className="card form" onSubmit={save}>
+      <div className={`storefront-savebar${dirty ? ' is-dirty' : ''}`} role="status" aria-live="polite">
+        <span className="storefront-savebar-text">{dirty ? t('Có thay đổi chưa lưu') : t('Đã lưu mọi thay đổi')}</span>
+        <button type="submit" className="primary" disabled={saving || !dirty}>
+          {saving ? t('Đang lưu…') : t('Lưu cài đặt')}
+        </button>
+        {error && <p className="error storefront-savebar-error">{t(error)}</p>}
+      </div>
       <label className="check">
         <input type="checkbox" checked={form.is_public} onChange={(e) => setForm({ ...form, is_public: e.target.checked })} />
         {t('Bật trang bán hàng cho khách (không cần đăng nhập)')}
@@ -239,7 +277,7 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
 
       <h3 className="card-title">{t('Cách bán trên trang khách')}</h3>
       <small className="muted">
-        {t('Bật hoặc tạm tắt từng danh mục trên trang đặt hàng. Khi tạm tắt, món và bảng giá vẫn giữ nguyên để mở bán lại bất cứ lúc nào.')}
+        {t('Bấm "Chờ mở gom" hoặc "Mở bán lại" là lưu ngay lên trang khách. Khi tạm tắt, món và bảng giá vẫn giữ nguyên để mở bán lại bất cứ lúc nào.')}
       </small>
       <div className="table-wrap">
         <table className="storefront-cat-table">
@@ -285,14 +323,11 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
                   <td style={{ textAlign: 'right' }}>
                     <button
                       type="button"
-                      className={isHidden ? 'link' : 'link danger'}
-                      onClick={() =>
-                        setHiddenCategories((hs) =>
-                          hs.includes(category) ? hs.filter((c) => c !== category) : [...hs, category],
-                        )
-                      }
+                      className={`cat-toggle${isHidden ? ' is-open' : ' danger'}`}
+                      disabled={toggling !== null}
+                      onClick={() => toggleHidden(category)}
                     >
-                      {isHidden ? t('Mở bán lại') : t('Chờ mở gom')}
+                      {toggling === category ? t('Đang lưu…') : isHidden ? t('Mở bán lại') : t('Chờ mở gom')}
                     </button>
                   </td>
                 </tr>
@@ -421,9 +456,8 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
           </label>
         </>
       )}
-      {error && <p className="error">{t(error)}</p>}
       <div className="row">
-        <button type="submit" className="primary" disabled={saving}>
+        <button type="submit" className="primary" disabled={saving || !dirty}>
           {saving ? t('Đang lưu…') : t('Lưu cài đặt')}
         </button>
         {form.is_public && (
