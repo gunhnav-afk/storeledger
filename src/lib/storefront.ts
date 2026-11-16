@@ -17,6 +17,8 @@ export type MenuItem = {
   image_x?: number | null
   image_y?: number | null
   image_zoom?: number | null
+  // Quán bấm "Hết hàng" trong Trang khách: món vẫn hiện (mờ) nhưng không chọn được
+  sold_out?: boolean
 }
 export type PublicBank = { code: string; account: string; holder: string }
 // QR thanh toán gốc của quán (chuỗi EMVCo, ví dụ QR Góp Quỹ MoMo): trang tự thêm số tiền, số hoá đơn, nội dung
@@ -49,6 +51,10 @@ export type SingleLine = { kind: 'single'; key: string; productId: string; qty: 
 export type CartLine = SetLine | SingleLine
 
 export const isSingle = (item: Pick<MenuItem, 'mode'>) => item.mode === 'single'
+export const isSoldOut = (item: Pick<MenuItem, 'sold_out'> | undefined) => item?.sold_out === true
+
+// Món còn hàng đứng trước, món hết hàng dồn xuống cuối (giữ nguyên thứ tự thực đơn trong từng nhóm)
+export const soldOutLast = <T extends Pick<MenuItem, 'sold_out'>>(list: T[]): T[] => [...list.filter((i) => !isSoldOut(i)), ...list.filter(isSoldOut)]
 // Đơn vị bán lẻ: chai (đồ uống theo ml) hoặc hũ
 export const unitOf = (name: string) => (/chai|\d\s*ml|whey/i.test(name) ? 'chai' : 'hũ')
 
@@ -123,6 +129,8 @@ export const flavorTitle = (name: string) => (/^flan\s+truyền\s+thống$/i.tes
 export function setPriceHints(size: SetSize, lineItems: MenuItem[], store: Pricing): { label: string | null; price: number }[] {
   const out: { label: string | null; price: number }[] = []
   for (const item of lineItems) {
+    // Vị đang hết hàng thì không quảng cáo giá set riêng của vị đó
+    if (isSoldOut(item)) continue
     const own = store.set_prices.find((r) => r.size === size && r.product_id === item.id)
     if (own) out.push({ label: flavorTitle(item.name), price: own.price })
   }
@@ -165,7 +173,7 @@ export function addSet(lines: CartLine[], size: SetSize, mix: Mix, qty: number, 
   if (mixCount(mix) !== size || qty <= 0) return lines
   // Mọi vị trong một set phải cùng dòng món
   const used = items.filter((i) => (mix[i.id] ?? 0) > 0)
-  if (new Set(used.map(lineOf)).size > 1) return lines
+  if (new Set(used.map(lineOf)).size > 1 || used.some(isSoldOut)) return lines
   const unitPrice = setPrice(size, mix, items, store)
   if (unitPrice === null) return lines
   const key = lineKey(size, mix)
@@ -177,7 +185,7 @@ export function addSet(lines: CartLine[], size: SetSize, mix: Mix, qty: number, 
 // Đặt số lượng món lẻ trong đơn (0 = bỏ món); món chưa có giá thì không thêm
 export function setSingleQty(lines: CartLine[], item: MenuItem, qty: number): CartLine[] {
   const key = `p|${item.id}`
-  if (qty <= 0 || item.price === null) return lines.filter((l) => l.key !== key)
+  if (qty <= 0 || item.price === null || isSoldOut(item)) return lines.filter((l) => l.key !== key)
   const next: SingleLine = { kind: 'single', key, productId: item.id, qty: Math.min(MAX_SETS, qty), unitPrice: item.price }
   return lines.some((l) => l.key === key) ? lines.map((l) => (l.key === key ? next : l)) : [...lines, next]
 }
@@ -191,15 +199,16 @@ export function setLineQty(lines: CartLine[], key: string, qty: number): CartLin
   return lines.map((l) => (l.key === key ? { ...l, qty: Math.min(MAX_SETS, qty) } : l))
 }
 
-// Bỏ dòng có vị đã không còn trên thực đơn hoặc thuộc danh mục chờ mở gom (sau khi thực đơn được tải lại) và cập nhật giá mới
+// Bỏ dòng có vị đã không còn trên thực đơn thuộc danh mục chờ mở gom hoặc vừa hết hàng (sau khi thực đơn được tải lại) và cập nhật giá mới
 export function refreshCart(lines: CartLine[], items: MenuItem[], store: Pricing & Pick<PublicStore, 'disabled_categories'>): CartLine[] {
   const byId = new Map(items.filter((i) => !isLineDisabled(lineOf(i), store)).map((i) => [i.id, i]))
   const out: CartLine[] = []
   for (const l of lines) {
     if (l.kind === 'single') {
-      const price = byId.get(l.productId)?.price
-      if (price !== null && price !== undefined) out.push({ ...l, unitPrice: price })
-    } else if (Object.keys(l.mix).every((id) => byId.has(id))) {
+      const item = byId.get(l.productId)
+      const price = item?.price
+      if (price !== null && price !== undefined && !isSoldOut(item)) out.push({ ...l, unitPrice: price })
+    } else if (Object.keys(l.mix).every((id) => byId.has(id) && !isSoldOut(byId.get(id)))) {
       out.push({ ...l, unitPrice: setPrice(l.size, l.mix, items, store) ?? l.unitPrice })
     }
   }

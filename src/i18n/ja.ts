@@ -1187,4 +1187,12 @@ export const ja: Record<string, string> = {
   'Chờ mở gom': '受付待ち',
   'Đã chuyển danh mục "{name}" sang chờ mở gom': 'カテゴリ「{name}」を受付待ちに設定しました',
   'Gắn tag "Chờ mở gom" để hiển thị danh mục trên web nhưng tạm dừng nhận đơn; khi gom xong chỉ cần bấm "Mở bán lại".': '「受付待ち」タグを付けると、Web上でカテゴリを表示しつつ注文受付を停止できます。準備ができたら「販売再開」を押してください。',
+  'Đã mở bán lại tất cả món': 'すべての商品を販売再開しました',
+  '{name}: đã báo hết hàng': '{name}：売り切れにしました',
+  '{name}: đã mở bán lại': '{name}：販売を再開しました',
+  'Còn hàng hôm nay': '本日の在庫',
+  'Tắt món đã hết: khách vẫn thấy món nhưng không đặt được. Lưu ngay khi bấm.': '売り切れた商品をオフにします。お客様には表示されますが注文できません。タップするとすぐ保存されます。',
+  'Mở bán lại tất cả': 'すべて販売再開',
+  'Chưa có sản phẩm đang bán.': '販売中の商品がありません。',
+  'Còn hàng: {name}': '在庫あり：{name}',
 }

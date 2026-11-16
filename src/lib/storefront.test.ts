@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { preorderPayload, cartCount, cartSingles, cartSummary, lineTitle, setSingleQty, singleQty, unitOf, EMPTY_CUSTOMER, addSet, menuLines, setPriceHints, customerIssues, transferNote, cleanFloor, validDomain, validFloor, vietQrUrl, cartJars, cartSets, cartTotal, changeMix, flavorColors, flavorImage, flavorNote, flavorPosition, getCachedMenu, setCachedMenu, mixLabel, orderMessage, refreshCart, selectable, setLineQty, setPrice, zaloLink, hangoutEmail, type MenuItem, type PublicMenu } from './storefront'
+import { preorderPayload, cartCount, cartSingles, cartSummary, lineTitle, setSingleQty, singleQty, unitOf, EMPTY_CUSTOMER, addSet, menuLines, setPriceHints, customerIssues, transferNote, cleanFloor, validDomain, validFloor, vietQrUrl, cartJars, cartSets, cartTotal, changeMix, flavorColors, flavorImage, flavorNote, flavorPosition, getCachedMenu, setCachedMenu, mixLabel, orderMessage, refreshCart, selectable, setLineQty, setPrice, zaloLink, hangoutEmail, isSoldOut, soldOutLast, type MenuItem, type PublicMenu } from './storefront'
 
 const item = (id: string, name: string, price: number | null): MenuItem => ({ id, name, category: null, price })
 const items = [item('tt', 'Truyền thống', 12000), item('pm', 'Phô mai', 15000), item('mc', 'Matcha', 15000), item('x', 'Vị chưa có giá', null)]
@@ -263,5 +263,45 @@ describe('bộ nhớ đệm thực đơn (SWR cache)', () => {
     const cached = getCachedMenu('hogi', mockStorage)
     expect(cached?.store.name).toBe('Hogi Food')
     expect(cached?.items).toHaveLength(1)
+  })
+})
+
+describe('món hết hàng', () => {
+  const yogurt: MenuItem[] = [
+    { id: 'tt', name: 'Truyền thống', category: 'Sữa chua', price: 12000 },
+    { id: 'pm', name: 'Phô mai', category: 'Sữa chua', price: 15000, sold_out: true },
+    { id: 'mc', name: 'Matcha', category: 'Sữa chua', price: 15000 },
+  ]
+  const greek: MenuItem = { id: 'hl', name: 'Hy Lạp 110g', category: 'Hy Lạp', price: 25000, mode: 'single', sold_out: true }
+  const rules = {
+    set_prices: [
+      { size: 4 as const, product_id: 'pm', price: 50000 },
+      { size: 4 as const, product_id: null, category: 'Sữa chua', price: 55000 },
+    ],
+  }
+
+  it('nhận diện và dồn món hết hàng xuống cuối, giữ thứ tự còn lại', () => {
+    expect(isSoldOut(yogurt[1])).toBe(true)
+    expect(isSoldOut(yogurt[0])).toBe(false)
+    expect(isSoldOut(undefined)).toBe(false)
+    expect(soldOutLast(yogurt).map((i) => i.id)).toEqual(['tt', 'mc', 'pm'])
+  })
+  it('không thêm set có vị hết hàng, set còn lại vẫn giữ giá mix', () => {
+    expect(addSet([], 4, { tt: 2, pm: 2 }, 1, yogurt, rules)).toEqual([])
+    expect(addSet([], 4, { tt: 2, mc: 2 }, 1, yogurt, rules)[0]?.unitPrice).toBe(55000)
+  })
+  it('không thêm món lẻ hết hàng', () => {
+    expect(setSingleQty([], greek, 2)).toEqual([])
+  })
+  it('gợi ý giá cỡ set bỏ giá riêng của vị hết hàng', () => {
+    expect(setPriceHints(4, yogurt, rules)).toEqual([{ label: 'Mix vị', price: 55000 }])
+  })
+  it('làm mới thực đơn thì bỏ dòng có món vừa hết hàng', () => {
+    const fresh = yogurt.map((i) => ({ ...i, sold_out: false }))
+    const cart = [...addSet([], 4, { tt: 2, pm: 2 }, 1, fresh, rules), ...setSingleQty([], { ...greek, sold_out: false }, 1), ...addSet([], 4, { mc: 4 }, 1, fresh, rules)]
+    expect(cart).toHaveLength(3)
+    const next = refreshCart(cart, [...yogurt, greek], rules)
+    expect(next).toHaveLength(1)
+    expect(next[0]).toMatchObject({ kind: 'set', mix: { mc: 4 } })
   })
 })

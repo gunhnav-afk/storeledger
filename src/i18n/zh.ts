@@ -1187,4 +1187,12 @@ export const zh: Record<string, string> = {
   'Chờ mở gom': '待开团',
   'Đã chuyển danh mục "{name}" sang chờ mở gom': '已将分类"{name}"设置为待开团',
   'Gắn tag "Chờ mở gom" để hiển thị danh mục trên web nhưng tạm dừng nhận đơn; khi gom xong chỉ cần bấm "Mở bán lại".': '添加"待开团"标签可在网站展示但暂停接单；开团后只需点击"恢复售卖"。',
+  'Đã mở bán lại tất cả món': '所有商品已恢复销售',
+  '{name}: đã báo hết hàng': '{name}：已标记售罄',
+  '{name}: đã mở bán lại': '{name}：已恢复销售',
+  'Còn hàng hôm nay': '今日有货',
+  'Tắt món đã hết: khách vẫn thấy món nhưng không đặt được. Lưu ngay khi bấm.': '关闭已售完的商品：顾客仍能看到但无法下单。点击即保存。',
+  'Mở bán lại tất cả': '全部恢复销售',
+  'Chưa có sản phẩm đang bán.': '暂无在售商品。',
+  'Còn hàng: {name}': '有货：{name}',
 }

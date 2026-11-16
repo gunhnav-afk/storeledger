@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { StorefrontSettings } from '../components/StorefrontSettings'
+import { StorefrontStock } from '../components/StorefrontStock'
 import { useI18n } from '../lib/i18n'
 import { useStore } from '../lib/store'
 
@@ -18,7 +19,10 @@ function Storefront({ storeId, code, isPublic }: { storeId: string; code: string
       <h2>{t('Trang bán hàng công khai')}</h2>
       <p className="muted">{t('Trang khách đặt trước theo set, không cần đăng nhập. Thực đơn và giá lấy tự động từ danh sách sản phẩm.')}</p>
       <div className="storefront-grid">
-        <StorefrontSettings storeId={storeId} code={code} onSaved={() => setVersion((v) => v + 1)} />
+        <div className="storefront-col">
+          <StorefrontStock storeId={storeId} onChanged={() => setVersion((v) => v + 1)} />
+          <StorefrontSettings storeId={storeId} code={code} onSaved={() => setVersion((v) => v + 1)} />
+        </div>
         <div className="card storefront-preview">
           <h3 className="card-title">{t('Xem trước')}</h3>
           {isPublic ? (

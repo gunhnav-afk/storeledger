@@ -62,6 +62,8 @@ export type Product = {
   image_x: number | null
   image_y: number | null
   image_zoom: number | null
+  // Trang đặt trước: tạm hết hàng, vẫn hiện nhưng khách không chọn được (20261116090000_product_sold_out.sql)
+  public_sold_out: boolean
   created_at: string
 }
 
@@ -336,6 +338,7 @@ export type ProductInsert = {
   image_x?: number | null
   image_y?: number | null
   image_zoom?: number | null
+  public_sold_out?: boolean
   created_at?: string
 }
 export type ProductUpdate = Partial<ProductInsert>

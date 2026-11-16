@@ -13,6 +13,7 @@ web-nhap-lieu/
 ├── MAP.md                      # Bản đồ dự án: tra cứu vị trí file và hướng dẫn lưu trữ
 ├── AGENTS.md                   # Quy tắc chung cho toàn bộ agent và subagent
 ├── SPEC.md                     # Đặc tả kỹ thuật & nghiệp vụ chi tiết của ứng dụng
+├── PRODUCT.md                  # Hồ sơ ngữ cảnh sản phẩm bền vững (Impeccable product truth)
 ├── PLAN.md                     # Kế hoạch phát triển, tiến độ và roadmap
 ├── WORKTREE.md                 # Quy tắc chạy đa nhiệm song song không conflict với Git Worktree
 ├── .worktreeinclude            # Danh sách file được tự động sao chép sang worktree mới
@@ -97,12 +98,12 @@ web-nhap-lieu/
 │   │   └── dailyCalendar.ts    # Gom đơn bán theo ngày (Quán / Công ty, số set đọc từ ghi chú) + lưới lịch tháng cho pages/DailyCalendar.tsx (Nhật ký ngày → Lịch tháng)
 │   ├── lucian/                 # CSS phần tử Lucian UX/UI Prompt (lucianlabs.dev/uxui-prompt, MIT): tokens.css ánh xạ --ux-* sang biến giao diện,
 │   │                           #   u070-toasts.css (chồng thông báo), u219-theme.css (đổi giao diện vòng tròn); giữ dòng license đầu file
-│   ├── components/             # Các component tái sử dụng (ProductImageEditor = khung chọn / xoay / kéo căn / phóng ảnh món ở Sản phẩm → Ảnh, Header, CartModal, ShopMotion (khung motion + PopNumber; không có hiệu ứng hiện dần khi cuộn), Settings, UpdateWatcher tự tải lại khi có bản mới...)
+│   ├── components/             # Các component tái sử dụng (ProductImageEditor = khung chọn / xoay / kéo căn / phóng ảnh món ở Sản phẩm → Ảnh, Header, CartModal, ShopMotion (khung motion + PopNumber; không có hiệu ứng hiện dần khi cuộn), Settings, StorefrontStock = công tắc Còn hàng / Hết hàng từng món trên trang khách (lưu ngay khi bấm), UpdateWatcher tự tải lại khi có bản mới...)
 │   └── pages/                  # Các trang màn hình giao diện (ShopPage, Revenue, Expenses, DisposalPage = Nhập liệu → Hàng huỷ ghi hàng không đủ chất lượng bán, BatchStatsPage = Báo cáo → Theo đợt nhập kèm cột thanh toán / hàng huỷ...)
 │
 ├── supabase/                   # Cấu hình và mã nguồn Backend Supabase
 │   ├── config.toml             # Cấu hình dự án Supabase cục bộ
-│   ├── migrations/             # Các file migration SQL (gồm 20261025250000_enable_vault.sql kích hoạt Supabase Vault, 20261101090000_revenue_dau_den.sql thêm kênh doanh thu Bán dầu đen, 20261104090000_stock_disposals_purchase_payment.sql thêm bảng hàng huỷ stock_disposals + purchases.paid_on, 20261107044100_product_images.sql thêm bucket product-images + cột products.image_url/image_x/image_y/image_zoom, 20261107050834_dba_hardening.sql siết quyền EXECUTE hàm, search_path Vault, index khoá ngoại, gộp policy ingredients)
+│   ├── migrations/             # Các file migration SQL (gồm 20261025250000_enable_vault.sql kích hoạt Supabase Vault, 20261101090000_revenue_dau_den.sql thêm kênh doanh thu Bán dầu đen, 20261104090000_stock_disposals_purchase_payment.sql thêm bảng hàng huỷ stock_disposals + purchases.paid_on, 20261107044100_product_images.sql thêm bucket product-images + cột products.image_url/image_x/image_y/image_zoom, 20261107050834_dba_hardening.sql siết quyền EXECUTE hàm, search_path Vault, index khoá ngoại, gộp policy ingredients, 20261116090000_product_sold_out.sql thêm products.public_sold_out: món tạm hết hàng trên trang khách, submit_preorder từ chối)
 │   └── functions/              # Edge Functions chạy trên nền tảng Deno
 │       ├── admin-users/        # Quản lý tài khoản nhân viên
 │       └── chat-assistant/     # Trợ lý AI phân tích số liệu bán hàng

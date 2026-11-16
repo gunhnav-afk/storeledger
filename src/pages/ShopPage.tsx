@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { AnimatePresence, m } from 'motion/react'
 import { supabase } from '../lib/supabase'
@@ -22,6 +22,8 @@ import {
   setCachedMenu,
   isSingle,
   isLineDisabled,
+  isSoldOut,
+  soldOutLast,
   flavorNote,
   lineOf,
   menuLines,
@@ -141,6 +143,11 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
   const [copiedContact, setCopiedContact] = useState(false)
   // Thông báo nổi dạng chồng (Lucian #070), dùng chung với Sổ Xanh
   const toast = useToast()
+  // Giỏ hiện tại cho load(): so trước/sau khi làm mới thực đơn để báo khách món vừa hết hàng
+  const cartRef = useRef<CartLine[]>([])
+  useEffect(() => {
+    cartRef.current = cart
+  }, [cart])
 
   const load = useCallback(async () => {
     try {
@@ -152,20 +159,24 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
       setError(false)
       const next: PublicMenu | null = data ?? null
       setMenu(next)
-      // Cập nhật giá mới và bỏ vị đã gỡ khỏi thực đơn
+      // Cập nhật giá mới, bỏ vị đã gỡ khỏi thực đơn hoặc quán vừa bấm hết hàng
       if (next) {
         setCachedMenu(code, next)
+        const before = cartRef.current
+        if (refreshCart(before, next.items, next.store).length < before.length) {
+          toast.error('Có món vừa hết hàng hoặc tạm ngưng nhận đơn nên đã được bỏ khỏi đơn của bạn')
+        }
         setCart((c) => refreshCart(c, next.items, next.store))
         const firstLine = menuLines(next.items).find((l) => !isLineDisabled(l, next.store)) ?? ''
         const firstList = firstLine ? next.items.filter((i) => lineOf(i) === firstLine) : []
         if (firstList.length === 1 && !isSingle(firstList[0])) {
-          setMix({ [firstList[0].id]: 4 })
+          setMix(isSoldOut(firstList[0]) ? {} : { [firstList[0].id]: 4 })
         } else {
           setMix((m) =>
             Object.fromEntries(
               Object.entries(m).filter(([id]) => {
                 const found = next.items.find((i) => i.id === id)
-                return Boolean(found && !isLineDisabled(lineOf(found), next.store))
+                return Boolean(found && !isLineDisabled(lineOf(found), next.store) && !isSoldOut(found))
               })
             )
           )
@@ -174,7 +185,7 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
     } finally {
       setLoading(false)
     }
-  }, [code])
+  }, [code, toast])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -202,8 +213,10 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
   const lines = useMemo(() => menuLines(items), [items])
   const defaultLine = useMemo(() => lines.find((l) => !isLineDisabled(l, store)) ?? lines[0] ?? '', [lines, store])
   const activeLine = lines.includes(line) ? line : defaultLine
-  const lineItems = useMemo(() => (activeLine ? items.filter((i) => lineOf(i) === activeLine) : []), [items, activeLine])
+  const lineItems = useMemo(() => (activeLine ? soldOutLast(items.filter((i) => lineOf(i) === activeLine)) : []), [items, activeLine])
   const isLineGom = useMemo(() => Boolean(store && isLineDisabled(activeLine, store)), [activeLine, store])
+  // Cả dòng món đang tạm hết (vd: hôm nay hết flan)
+  const lineSoldOut = lineItems.length > 0 && lineItems.every(isSoldOut)
 
   const picked = mixCount(mix)
   const unitPrice = useMemo(() => (picked === size && store ? setPrice(size, mix, items, store) : null), [picked, size, store, mix, items])
@@ -231,7 +244,7 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
   const autoMixFor = useCallback(
     (targetLine: string, targetSize: SetSize): Mix => {
       const list = items.filter((i) => lineOf(i) === targetLine)
-      if (list.length === 1 && !isSingle(list[0])) {
+      if (list.length === 1 && !isSingle(list[0]) && !isSoldOut(list[0])) {
         return { [list[0].id]: targetSize }
       }
       return {}
@@ -415,6 +428,7 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
               <div className="shop-tabs" role="tablist" aria-label="Loại món">
                 {lines.map((l) => {
                   const disabled = isLineDisabled(l, store)
+                  const out = items.every((i) => lineOf(i) !== l || isSoldOut(i))
                   const selected = activeLine === l
                   return (
                     <m.button
@@ -428,7 +442,7 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
                       onClick={() => chooseLine(l)}
                     >
                       <span>{l}</span>
-                      {disabled && <span className="shop-tab-tag">Chờ mở gom</span>}
+                      {disabled ? <span className="shop-tab-tag">Chờ mở gom</span> : out && <span className="shop-tab-tag is-soldout">Hết hàng</span>}
                     </m.button>
                   )
                 })}
@@ -445,9 +459,15 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
               </div>
             )}
 
-            {singleLine && !isLineGom && <p className="shop-sub">Bán lẻ theo từng phần, không cần chọn set. Bấm + để thêm vào đơn.</p>}
+            {!isLineGom && lineSoldOut && (
+              <p className="shop-soldout-banner" role="status">
+                {activeLine} hôm nay đã hết hàng. Bạn chọn món khác hoặc quay lại sau nhé.
+              </p>
+            )}
 
-            {!singleLine && !isLineGom && (
+            {singleLine && !isLineGom && !lineSoldOut && <p className="shop-sub">Bán lẻ theo từng phần, không cần chọn set. Bấm + để thêm vào đơn.</p>}
+
+            {!singleLine && !isLineGom && !lineSoldOut && (
             <div className="shop-sizes" role="radiogroup" aria-label="Cỡ set">
               {SET_SIZES.map((s) => {
                 const h = sizeHints[s] ?? []
@@ -476,14 +496,16 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
                 const image = menuImage(item)
                 const note = flavorNote(item.name)
                 const single = isSingle(item)
-                const n = single ? singleQty(cart, item.id) : (mix[item.id] ?? 0)
-                const ok = single ? item.price !== null : selectable(item, size, store)
+                const soldOut = isSoldOut(item)
+                const n = soldOut ? 0 : single ? singleQty(cart, item.id) : (mix[item.id] ?? 0)
+                const ok = !soldOut && (single ? item.price !== null : selectable(item, size, store))
                 return (
                   <div key={item.id} className="shop-card-wrap">
-                  <article className={`shop-card${n > 0 ? ' is-picked' : ''}${ok && !isLineGom ? '' : ' is-out'}`}>
+                  <article className={`shop-card${n > 0 ? ' is-picked' : ''}${soldOut ? ' is-soldout' : ok && !isLineGom ? '' : ' is-out'}`}>
                     <div className="shop-art" style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }} aria-hidden="true">
                       {isLineGom && <span className="shop-badge-gom">Chờ mở gom</span>}
                       {image ? <img src={image.src} alt="" loading="lazy" width={520} height={430} style={frameStyle(image.frame)} /> : <span>{flavorEmoji(item.name)}</span>}
+                      {soldOut && !isLineGom && <span className="shop-soldout-tag">Hết hàng</span>}
                       <AnimatePresence>
                         {n > 0 && !isLineGom && (
                           <m.span key="picked" className="shop-picked" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={SPRING}>
@@ -528,6 +550,8 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
                             +
                           </m.button>
                         </div>
+                      ) : soldOut ? (
+                        <p className="shop-soldout-note">Tạm hết hôm nay</p>
                       ) : (
                         <p className="shop-note">Chưa có giá</p>
                       )}
@@ -538,7 +562,7 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
               })}
             </div>
 
-            {!singleLine && !isLineGom && (
+            {!singleLine && !isLineGom && !lineSoldOut && (
             <div className={`shop-builder${count > 0 ? ' has-cartbar' : ''}`} aria-live="polite">
               <div className="shop-builder-info">
                 <div className={`shop-dots shop-dots-${size}`} aria-hidden="true">

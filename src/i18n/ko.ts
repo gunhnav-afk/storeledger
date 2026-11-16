@@ -1187,4 +1187,12 @@ export const ko: Record<string, string> = {
   'Chờ mở gom': '공구 대기',
   'Đã chuyển danh mục "{name}" sang chờ mở gom': '"{name}" 카테고리를 공구 대기 상태로 변경했습니다',
   'Gắn tag "Chờ mở gom" để hiển thị danh mục trên web nhưng tạm dừng nhận đơn; khi gom xong chỉ cần bấm "Mở bán lại".': '웹에 카테고리를 노출하되 주문은 받지 않으려면 "공구 대기" 태그를 지정하세요. 준비되면 "다시 판매"를 누르면 됩니다.',
+  'Đã mở bán lại tất cả món': '모든 메뉴를 다시 판매합니다',
+  '{name}: đã báo hết hàng': '{name}: 품절로 표시했습니다',
+  '{name}: đã mở bán lại': '{name}: 다시 판매합니다',
+  'Còn hàng hôm nay': '오늘 재고',
+  'Tắt món đã hết: khách vẫn thấy món nhưng không đặt được. Lưu ngay khi bấm.': '다 떨어진 메뉴를 끄세요. 고객에게 보이지만 주문할 수 없습니다. 누르는 즉시 저장됩니다.',
+  'Mở bán lại tất cả': '모두 다시 판매',
+  'Chưa có sản phẩm đang bán.': '판매 중인 상품이 없습니다.',
+  'Còn hàng: {name}': '재고 있음: {name}',
 }

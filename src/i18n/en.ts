@@ -1187,4 +1187,12 @@ export const en: Record<string, string> = {
   'Chờ mở gom': 'Waiting for group order',
   'Đã chuyển danh mục "{name}" sang chờ mở gom': 'Switched category "{name}" to waiting for group order',
   'Gắn tag "Chờ mở gom" để hiển thị danh mục trên web nhưng tạm dừng nhận đơn; khi gom xong chỉ cần bấm "Mở bán lại".': 'Tag as "Waiting for group order" to display on the web while pausing orders; click "Re-enable" when ready to sell.',
+  'Đã mở bán lại tất cả món': 'All items are back on sale',
+  '{name}: đã báo hết hàng': '{name}: marked sold out',
+  '{name}: đã mở bán lại': '{name}: back on sale',
+  'Còn hàng hôm nay': 'In stock today',
+  'Tắt món đã hết: khách vẫn thấy món nhưng không đặt được. Lưu ngay khi bấm.': 'Turn off items that ran out: customers still see them but can\'t order. Saves as soon as you tap.',
+  'Mở bán lại tất cả': 'Put all back on sale',
+  'Chưa có sản phẩm đang bán.': 'No products on sale yet.',
+  'Còn hàng: {name}': 'In stock: {name}',
 }
