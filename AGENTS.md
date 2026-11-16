@@ -52,3 +52,24 @@ Tài liệu này là hợp đồng kỷ luật bắt buộc cho mọi Agent, Sub
 - Giữ nội dung phản hồi ngắn gọn, súc tích, định dạng Markdown rõ ràng.
 - Luôn tạo clickable link cho các file và biểu tượng code theo chuẩn `[ten-file](file:///duong/dan/tuyet/doi)`.
 - Liệt kê minh bạch kết quả từng lệnh kiểm tra và mã commit (nếu có).
+
+---
+
+## 4. Bộ kỹ năng Agent tích hợp (Project Skills)
+
+Dự án và toàn bộ Agent trên máy được hỗ trợ 3 bộ kỹ năng tiêu chuẩn:
+
+1. **`impeccable`** (Frontend UI/UX Craft & Anti-Slop):
+   - **Vị trí**: `.agents/skills/impeccable`, `.agent/skills/impeccable`, `.claude/skills/impeccable` (và global `~/.gemini/config/skills/impeccable`, `~/.claude/skills/impeccable`).
+   - **Ứng dụng**: Thẩm định UX (`critique`), kiểm tra a11y & contrast (`audit`), tinh chỉnh giao diện (`polish`, `bolder`, `quieter`). Quét anti-patterns: `npx impeccable detect <target>`.
+   - **Nguyên tắc**: Giữ chuẩn chất lượng cao (craft floor), bảo tồn tokens và tài liệu ngữ cảnh thiết kế.
+
+2. **`design-taste-frontend`** (taste-skill - Chuẩn thẩm mỹ cao cấp):
+   - **Vị trí**: `.agents/skills/design-taste-frontend`, `.agent/skills/design-taste-frontend`, `.claude/skills/design-taste-frontend`.
+   - **Ứng dụng**: Áp dụng khi thiết kế hoặc cải thiện trang giao diện (landing page, shop, dashboard), tránh giao diện generic AI slop.
+   - **House rules**: 1 section/màn hình; đối xứng lề trái/phải; micro-interactions nhã nhặn (hover card nâng 2px, zoom 1.02); visual render đầy đủ trên 1440, 1024, 768, 390; không dùng caption thừa dưới visual.
+
+3. **`agent-reach`** (Social & Media Read-Only Web Reach):
+   - **Vị trí**: `.agents/skills/agent-reach`, `.agent/skills/agent-reach`, `.claude/skills/agent-reach`.
+   - **Ứng dụng**: Tra cứu và đọc nội dung chỉ đọc từ các nền tảng xã hội/video/developer (GitHub, Twitter/X, Reddit, YouTube transcript/phụ đề, B站, V2EX, Xiaohongshu...) khi các công cụ web fetch thông thường bị giới hạn. Lệnh: `agent-reach <channel> <action> ...`.
+

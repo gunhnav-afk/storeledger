@@ -75,3 +75,13 @@ rtk proxy <cmd>     # Chạy raw command khi cần debug
 - **Bộ nhớ AI dài hạn**: Ghi nhận bài học, quyết định kiến trúc vào [`contexte/`](contexte/).
 - **Sản phẩm bàn giao**: Xuất file kết quả vào [`livrables/`](livrables/).
 - **Tài liệu thô**: Đặt tài liệu tham khảo đầu vào tại [`sources/`](sources/).
+
+---
+
+## 5. Bộ kỹ năng Agent tích hợp (Skills Ecosystem)
+
+Codebase và toàn bộ AI Agent trên máy được trang bị 3 kỹ năng cốt lõi:
+- **`impeccable`**: Chuẩn hoá UI/UX craft, audit tương phản & a11y, critique heuristic, polish giao diện (`/impeccable audit`, `/impeccable critique`, `/impeccable polish`, `npx impeccable detect <target>`).
+- **`design-taste-frontend` (`taste-skill`)**: Chuẩn thẩm mỹ cao cấp (Figma/x.ai), triệt tiêu AI slop (1 section/screen, căn lề cân xứng, micro-animations hover nhấc 2px và zoom 1.02, không caption rác).
+- **`agent-reach`**: Đọc dữ liệu chỉ đọc từ các nền tảng mạng xã hội, media, kho mã nguồn (GitHub, X/Twitter, Reddit, YouTube transcript, Bilibili, V2EX, Xiaohongshu...) qua lệnh `agent-reach <channel> <action>`.
+
