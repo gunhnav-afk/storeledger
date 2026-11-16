@@ -5227,8 +5227,36 @@ input.overridden {
 .storefront-savebar.is-dirty .storefront-savebar-text {
   color: var(--accent);
 }
-.storefront-savebar .primary {
+.storefront-savebar {
+  animation: savebar-in 0.18s ease-out;
+}
+@keyframes savebar-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+.storefront-savebar-actions {
+  display: flex;
+  gap: 8px;
+}
+.storefront-savebar-actions button {
   min-height: 40px;
+  min-width: 84px;
+}
+@media (max-width: 640px) {
+  .storefront-savebar-actions {
+    flex: 1 1 100%;
+  }
+  .storefront-savebar-actions button {
+    flex: 1;
+    min-height: 44px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront-savebar {
+    animation: none;
+  }
 }
 .storefront-savebar-error {
   flex-basis: 100%;

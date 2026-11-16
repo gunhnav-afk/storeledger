@@ -39,7 +39,8 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [payMethod, setPayMethod] = useState<'qr' | 'bank' | 'none'>('qr')
-  const [savedSnap, setSavedSnap] = useState('')
+  // Bản đã lưu gần nhất: so để biết có thay đổi, và để Huỷ khôi phục lại
+  const [saved, setSaved] = useState<Draft | null>(null)
   // Danh mục đang lưu trạng thái chờ gom / mở bán
   const [toggling, setToggling] = useState<string | null>(null)
   const link = code === 'hogi' ? 'https://hogifood.vercel.app' : `${window.location.origin}/shop/${code}`
@@ -86,7 +87,7 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
       setCategoryNames(nextNames)
       setHiddenCategories(data.public_hidden_categories ?? [])
       setRules(nextRules)
-      setSavedSnap(snapshot({ form: nextForm, rules: nextRules, modes: nextModes, names: nextNames, payMethod: initialMethod }))
+      setSaved({ form: nextForm, rules: nextRules, modes: nextModes, names: nextNames, payMethod: initialMethod })
     })
     return () => {
       cancelled = true
@@ -97,7 +98,18 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
   if (!form) return null
 
   const updateRule = (uid: number, patch: Partial<RuleDraft>) => setRules((rs) => rs.map((r) => (r.uid === uid ? { ...r, ...patch } : r)))
-  const dirty = savedSnap !== '' && snapshot({ form, rules, modes, names: categoryNames, payMethod }) !== savedSnap
+  const dirty = saved !== null && snapshot({ form, rules, modes, names: categoryNames, payMethod }) !== snapshot(saved)
+
+  // Huỷ: trả mọi ô về bản đã lưu gần nhất
+  const discard = () => {
+    if (!saved) return
+    setForm(saved.form)
+    setRules(saved.rules)
+    setModes(saved.modes)
+    setCategoryNames(saved.names)
+    setPayMethod(saved.payMethod as 'qr' | 'bank' | 'none')
+    setError(null)
+  }
 
   // Chờ gom / mở bán lại lưu ngay, không phải kéo xuống bấm Lưu (tên danh mục giữ theo DB tới khi lưu đổi tên)
   const toggleHidden = async (category: string) => {
@@ -221,7 +233,7 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
     setCategoryNames(nextNames)
     setHiddenCategories(savedHidden)
     setRules(nextRules)
-    setSavedSnap(snapshot({ form, rules: nextRules, modes: nextModes, names: nextNames, payMethod }))
+    setSaved({ form, rules: nextRules, modes: nextModes, names: nextNames, payMethod })
     clearCachedMenu(code)
     toast.success(t('Đã lưu cài đặt trang bán hàng'))
     onSaved?.()
@@ -243,13 +255,20 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
 
   return (
     <form className="card form" onSubmit={save}>
-      <div className={`storefront-savebar${dirty ? ' is-dirty' : ''}`} role="status" aria-live="polite">
-        <span className="storefront-savebar-text">{dirty ? t('Có thay đổi chưa lưu') : t('Đã lưu mọi thay đổi')}</span>
-        <button type="submit" className="primary" disabled={saving || !dirty}>
-          {saving ? t('Đang lưu…') : t('Lưu cài đặt')}
-        </button>
-        {error && <p className="error storefront-savebar-error">{t(error)}</p>}
-      </div>
+      {(dirty || error) && (
+        <div className="storefront-savebar is-dirty" role="status" aria-live="polite">
+          <span className="storefront-savebar-text">{t('Có thay đổi chưa lưu')}</span>
+          <div className="storefront-savebar-actions">
+            <button type="button" onClick={discard} disabled={saving || !dirty}>
+              {t('Huỷ')}
+            </button>
+            <button type="submit" className="primary" disabled={saving || !dirty}>
+              {saving ? t('Đang lưu…') : t('Lưu')}
+            </button>
+          </div>
+          {error && <p className="error storefront-savebar-error">{t(error)}</p>}
+        </div>
+      )}
       <label className="check">
         <input type="checkbox" checked={form.is_public} onChange={(e) => setForm({ ...form, is_public: e.target.checked })} />
         {t('Bật trang bán hàng cho khách (không cần đăng nhập)')}

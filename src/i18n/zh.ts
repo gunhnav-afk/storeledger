@@ -1166,7 +1166,6 @@ export const zh: Record<string, string> = {
   'Nhập tên danh mục': '请输入分类名称',
   'Bấm "Chờ mở gom" hoặc "Mở bán lại" là lưu ngay lên trang khách. Khi tạm tắt, món và bảng giá vẫn giữ nguyên để mở bán lại bất cứ lúc nào.': '点击“待开团”或“恢复售卖”会立即保存到顾客页面。暂停时菜品与价格保持不变，随时可恢复售卖。',
   'Có thay đổi chưa lưu': '有未保存的更改',
-  'Đã lưu mọi thay đổi': '所有更改已保存',
   'Danh mục': '分类',
   'Tên danh mục {name}': '分类名称 {name}',
   'Trạng thái & cách bán': '状态与售卖方式',

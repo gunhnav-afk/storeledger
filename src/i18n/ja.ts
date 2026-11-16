@@ -1166,7 +1166,6 @@ export const ja: Record<string, string> = {
   'Nhập tên danh mục': 'カテゴリ名を入力してください',
   'Bấm "Chờ mở gom" hoặc "Mở bán lại" là lưu ngay lên trang khách. Khi tạm tắt, món và bảng giá vẫn giữ nguyên để mở bán lại bất cứ lúc nào.': '「受付待ち」または「販売再開」を押すとすぐに顧客ページへ保存されます。一時停止中も商品と価格表は保持され、いつでも再開できます。',
   'Có thay đổi chưa lưu': '未保存の変更があります',
-  'Đã lưu mọi thay đổi': 'すべての変更を保存しました',
   'Danh mục': 'カテゴリ',
   'Tên danh mục {name}': 'カテゴリ名 {name}',
   'Trạng thái & cách bán': '状態と販売方法',

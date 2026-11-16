@@ -1166,7 +1166,6 @@ export const ko: Record<string, string> = {
   'Nhập tên danh mục': '카테고리 이름을 입력하세요',
   'Bấm "Chờ mở gom" hoặc "Mở bán lại" là lưu ngay lên trang khách. Khi tạm tắt, món và bảng giá vẫn giữ nguyên để mở bán lại bất cứ lúc nào.': '"공구 대기" 또는 "다시 판매"를 누르면 바로 고객 페이지에 저장됩니다. 일시 중지해도 메뉴와 가격표는 유지되어 언제든 다시 판매할 수 있습니다.',
   'Có thay đổi chưa lưu': '저장하지 않은 변경 사항이 있습니다',
-  'Đã lưu mọi thay đổi': '모든 변경 사항이 저장되었습니다',
   'Danh mục': '카테고리',
   'Tên danh mục {name}': '카테고리 이름 {name}',
   'Trạng thái & cách bán': '상태 및 판매 방식',

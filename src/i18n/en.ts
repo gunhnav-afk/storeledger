@@ -1166,7 +1166,6 @@ export const en: Record<string, string> = {
   'Nhập tên danh mục': 'Enter a category name',
   'Bấm "Chờ mở gom" hoặc "Mở bán lại" là lưu ngay lên trang khách. Khi tạm tắt, món và bảng giá vẫn giữ nguyên để mở bán lại bất cứ lúc nào.': 'Tapping "Waiting for group order" or "Re-enable" saves to the customer page right away. While paused, items and prices are kept so you can reopen anytime.',
   'Có thay đổi chưa lưu': 'Unsaved changes',
-  'Đã lưu mọi thay đổi': 'All changes saved',
   'Danh mục': 'Category',
   'Tên danh mục {name}': 'Category name {name}',
   'Trạng thái & cách bán': 'Status & sale mode',
