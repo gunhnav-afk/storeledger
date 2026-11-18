@@ -30,6 +30,7 @@ web-nhap-lieu/
 ├── vite.config.ts              # Cấu hình bundler Vite & plugin React
 ├── vercel.json                 # Cấu hình rewrite URL cho Vercel deploy
 │
+├── .taste-skill/               # Bộ kiểm tra taste-skill: waivers.json (miễn trừ có lý do); chrome-*/ là hồ sơ tạm, bị .gitignore
 ├── .claude/                    # Bộ khung Harness cho Claude Code
 │   ├── settings.json           # Cấu hình quyền và công cụ cho Claude Code
 │   ├── rules/                  # Quy tắc chuyên biệt (rules-of-hooks, git-safety, rtk)

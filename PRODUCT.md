@@ -50,13 +50,13 @@ Khác với phần mềm POS đa năng cồng kềnh hoặc biểu mẫu đặt 
 ## Brand Commitments
 
 - **Sổ Xanh** (phân hệ quản trị nội bộ): Ngôn ngữ rõ ràng, thực dụng, bình dân dễ hiểu với người bán hàng; ưu tiên tốc độ nhập liệu và độ chính xác của con số tài chính.
-- **Hogi Food** (phân hệ trang khách `/hogi`): Thủ công, tươi mới, thân thiện và chỉn chu. Toàn bộ hình ảnh món ăn trên Storefront sử dụng bộ minh hoạ vector **SVG thiết kế riêng** đồng bộ nhận diện thương hiệu (`public/shop/*.svg`), không sử dụng emoji hệ thống thay cho minh hoạ sản phẩm.
+- **Hogi Food** (phân hệ trang khách `/hogi`): Thủ công, tươi mới, thân thiện và chỉn chu. Ảnh chụp thật của quán (`public/shop/*.jpg|jpeg`) dẫn dắt trang: hero, thẻ món và khối giao hàng, mỗi ảnh chỉ xuất hiện một lần. Bộ minh hoạ **SVG thiết kế riêng** (`public/shop/*.svg`) là phương án dự phòng khi món chưa có ảnh; không dùng emoji hệ thống thay cho ảnh sản phẩm.
 
 ## Evidence on Hand
 
 - **Tài sản hình ảnh & thương hiệu (`public/shop/`)**:
   - Logo thương hiệu: `hogi-logo.svg`, `hogi-logo.png`.
-  - Tranh minh hoạ banner: `hero.svg`.
+  - Ảnh hero: `hilaplon.jpeg` (hộp Hy Lạp + chai whey dán nhãn Hogi); ảnh khối giao hàng: `flan-matcha-phomai.jpg`. Tranh minh hoạ `hero.svg` không còn dùng trên trang (giữ trong kho tài sản).
   - Bộ sưu tập SVG từng vị món ăn: `flavor-truyen-thong.svg`, `flavor-pho-mai.svg`, `flavor-nep-cam.svg`, `flavor-matcha.svg`, `flavor-ca-cao.svg`, `flavor-banh-flan.svg`, `flavor-hy-lap.svg` (110g), `flavor-hy-lap-400.svg` (400g), `flavor-whey.svg` (220ml).
 - **Nghiệp vụ & Kiểm thử thực tế**:
   - Hệ thống tính giá set, tạo mã QR EMVCo (`src/lib/emvQr.ts`), vẽ ảnh hoá đơn (`src/lib/invoiceImage.ts`), phân tích hàng huỷ và lịch tháng bán hàng đã được kiểm chứng bằng bộ unit test trong `src/lib/`.
