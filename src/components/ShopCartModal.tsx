@@ -15,6 +15,7 @@ import {
   customerIssues,
   lineTitle,
   preorderPayload,
+  requiresAdvanceTransfer,
   transferNote,
   vietQrUrl,
   type CartLine,
@@ -70,12 +71,16 @@ export function ShopCartModal({ open, onClose, storeCode, cart, items, store, on
   }, [open, onClose])
 
   const total = useMemo(() => cartTotal(cart), [cart])
-  const issues = useMemo(() => customerIssues(customer, store.floors), [customer, store.floors])
-  const ready = cart.length > 0 && Object.keys(issues).length === 0
-
   const { bank, pay } = store
   const canTransfer = !!(pay || bank)
-  const payByTransfer = canTransfer && customer.payment === 'transfer'
+  const requiresTransfer = canTransfer && requiresAdvanceTransfer(total)
+  // Đơn từ 500k trở lên bắt buộc chuyển khoản trước; nếu không thì dùng lựa chọn của khách
+  const paymentMethod = requiresTransfer ? 'transfer' : customer.payment
+  const effectiveCustomer = useMemo(() => ({ ...customer, payment: paymentMethod }), [customer, paymentMethod])
+  const payByTransfer = canTransfer && paymentMethod === 'transfer'
+
+  const issues = useMemo(() => customerIssues(effectiveCustomer, store.floors, total), [effectiveCustomer, store.floors, total])
+  const ready = cart.length > 0 && Object.keys(issues).length === 0
   // Nội dung chuyển khoản "domain - F tầng" (vd: huong.vu3 - F6)
   const memo = transferNote(customer.domain, customer.floor)
 
@@ -118,9 +123,13 @@ export function ShopCartModal({ open, onClose, storeCode, cart, items, store, on
   // Gửi đơn lên máy chủ: máy chủ kiểm tra lại mọi thứ và tự tính giá
   const placeOrder = async () => {
     if (!ready) return setTried(true)
+    if (requiresTransfer && paymentMethod === 'cash') {
+      toast.error('Đơn từ 500.000đ vui lòng chuyển khoản trước giúp quán nhé.')
+      return setSubmitError('Đơn từ 500.000đ vui lòng chuyển khoản trước giúp quán nhé.')
+    }
     setSubmitting(true)
     setSubmitError(null)
-    const { data, error } = await supabase.rpc('submit_preorder', { p_store_code: storeCode, p_order: preorderPayload(cart, customer) })
+    const { data, error } = await supabase.rpc('submit_preorder', { p_store_code: storeCode, p_order: preorderPayload(cart, effectiveCustomer) })
     setSubmitting(false)
     if (error || !data) {
       toast.error('Chưa gửi được đơn, bạn thử lại nhé.')
@@ -153,7 +162,7 @@ export function ShopCartModal({ open, onClose, storeCode, cart, items, store, on
         storeDomain: store.domain,
         code: placed.code,
         issuedAt: now(),
-        customer,
+        customer: effectiveCustomer,
         lines: placed.lines.map((l) => ({ title: l.title, detail: l.detail, qty: l.qty, unitPrice: l.unit_price })),
         total: placed.total,
         paymentText: payByTransfer ? 'Chuyển khoản ngay' : 'Thanh toán sau khi nhận',
@@ -171,7 +180,7 @@ export function ShopCartModal({ open, onClose, storeCode, cart, items, store, on
     }
   }
 
-  const err = (k: 'name' | 'domain' | 'floor') => (tried && issues[k] ? <small className="shop-error">{issues[k]}</small> : null)
+  const err = (k: 'name' | 'domain' | 'floor' | 'payment') => (tried && issues[k] ? <small className="shop-error">{issues[k]}</small> : null)
 
   // Hộp thoại mở / đóng có hiệu ứng (AnimatePresence giữ phần tử lại cho đến khi chạy xong hiệu ứng đóng)
   return (
@@ -356,14 +365,36 @@ export function ShopCartModal({ open, onClose, storeCode, cart, items, store, on
               <>
                 <h4 className="shop-modal-title">Thanh toán</h4>
                 <div className="shop-pay" role="radiogroup" aria-label="Hình thức thanh toán">
-                  <button type="button" role="radio" aria-checked={customer.payment === 'transfer'} className={customer.payment === 'transfer' ? 'active' : undefined} onClick={() => setField({ payment: 'transfer' })}>
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={paymentMethod === 'transfer'}
+                    className={paymentMethod === 'transfer' ? 'active' : undefined}
+                    onClick={() => setField({ payment: 'transfer' })}
+                  >
                     Chuyển khoản ngay
                   </button>
-                  <button type="button" role="radio" aria-checked={customer.payment === 'cash'} className={customer.payment === 'cash' ? 'active' : undefined} onClick={() => setField({ payment: 'cash' })}>
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={paymentMethod === 'cash'}
+                    disabled={requiresTransfer}
+                    className={paymentMethod === 'cash' ? 'active' : undefined}
+                    onClick={() => {
+                      if (!requiresTransfer) setField({ payment: 'cash' })
+                    }}
+                    title={requiresTransfer ? 'Đơn từ 500.000đ yêu cầu chuyển khoản trước' : undefined}
+                  >
                     Thanh toán sau khi nhận
                   </button>
                 </div>
-                {payByTransfer && (
+                {err('payment')}
+                {requiresTransfer && (
+                  <p className="shop-notice is-warn">
+                    Đơn từ <b>500.000đ</b> vui lòng chuyển khoản trước giúp quán nhé. Quán nhận đơn và bắt đầu chuẩn bị ngay khi nhận được chuyển khoản.
+                  </p>
+                )}
+                {payByTransfer && !requiresTransfer && (
                   <p className="shop-notice">
                     Mã QR chuyển khoản sẽ hiện sau khi bạn điền đủ <b>domain, tầng</b> và bấm <b>Đặt hàng</b>. Số tiền và nội dung có sẵn trong mã.
                   </p>

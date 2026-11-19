@@ -259,14 +259,21 @@ export const cleanFloor = (floor: string) =>
     .toUpperCase()
 export const validFloor = (floor: string) => /^[A-Z0-9]{1,4}$/.test(cleanFloor(floor))
 
+// Đơn từ 500k: yêu cầu chuyển khoản trước (không áp dụng thanh toán khi nhận)
+export const LARGE_ORDER_TRANSFER_THRESHOLD = 500_000
+export const requiresAdvanceTransfer = (total: number) => total >= LARGE_ORDER_TRANSFER_THRESHOLD
+
 // Thông tin khách còn thiếu / sai (hiện cạnh ô nhập); rỗng nghĩa là gửi đơn được
-export function customerIssues(c: Customer, floors: string[] | null = null): Partial<Record<'name' | 'domain' | 'floor', string>> {
-  const out: Partial<Record<'name' | 'domain' | 'floor', string>> = {}
+export function customerIssues(c: Customer, floors: string[] | null = null, total = 0): Partial<Record<'name' | 'domain' | 'floor' | 'payment', string>> {
+  const out: Partial<Record<'name' | 'domain' | 'floor' | 'payment', string>> = {}
   if (!c.domain.trim()) out.domain = 'Nhập domain của bạn'
   else if (!validDomain(c.domain)) out.domain = 'Domain chỉ gồm chữ không dấu, số và dấu chấm (vd: huong.vu3)'
   if (!c.floor.trim()) out.floor = floors ? 'Chọn tầng' : 'Nhập tầng'
   else if (!validFloor(c.floor)) out.floor = 'Tầng chưa đúng (vd: 6)'
   else if (floors && !floors.includes(cleanFloor(c.floor))) out.floor = `Chỉ giao tầng ${floors.join(', ')}`
+  if (c.payment === 'cash' && requiresAdvanceTransfer(total)) {
+    out.payment = 'Đơn từ 500.000đ vui lòng chuyển khoản trước giúp quán nhé'
+  }
   return out
 }
 

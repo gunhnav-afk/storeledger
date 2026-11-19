@@ -5057,6 +5057,13 @@ input.overridden {
   background: var(--s-soft);
   color: var(--s-green-dark);
 }
+.shop-pay button:disabled {
+  opacity: 0.45;
+  background: #f4efe4;
+  border-color: #e5decb;
+  color: var(--s-muted);
+  cursor: not-allowed;
+}
 .shop-bank {
   display: flex;
   flex-direction: column;
@@ -5123,6 +5130,11 @@ input.overridden {
   border: 1px dashed #e0c25a;
   color: #5c4a00;
   font-size: 14px;
+}
+.shop-notice.is-warn {
+  background: #fffbeb;
+  border: 1.5px solid #fcd34d;
+  color: #78350f;
 }
 .shop-lines-done li {
   grid-template-columns: 1fr auto;

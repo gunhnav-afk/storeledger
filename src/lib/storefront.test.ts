@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { preorderPayload, cartCount, cartSingles, cartSummary, lineTitle, setSingleQty, singleQty, unitOf, EMPTY_CUSTOMER, addSet, menuLines, setPriceHints, customerIssues, transferNote, cleanFloor, validDomain, validFloor, vietQrUrl, cartJars, cartSets, cartTotal, changeMix, flavorColors, flavorImage, flavorNote, flavorPosition, getCachedMenu, setCachedMenu, mixLabel, orderMessage, refreshCart, selectable, setLineQty, setPrice, zaloLink, hangoutEmail, isSoldOut, soldOutLast, type MenuItem, type PublicMenu } from './storefront'
+import { preorderPayload, cartCount, cartSingles, cartSummary, lineTitle, setSingleQty, singleQty, unitOf, EMPTY_CUSTOMER, addSet, menuLines, setPriceHints, customerIssues, transferNote, cleanFloor, validDomain, validFloor, vietQrUrl, cartJars, cartSets, cartTotal, changeMix, flavorColors, flavorImage, flavorNote, flavorPosition, getCachedMenu, setCachedMenu, mixLabel, orderMessage, refreshCart, selectable, setLineQty, setPrice, zaloLink, hangoutEmail, isSoldOut, soldOutLast, LARGE_ORDER_TRANSFER_THRESHOLD, requiresAdvanceTransfer, type MenuItem, type PublicMenu } from './storefront'
 
 const item = (id: string, name: string, price: number | null): MenuItem => ({ id, name, category: null, price })
 const items = [item('tt', 'Truyền thống', 12000), item('pm', 'Phô mai', 15000), item('mc', 'Matcha', 15000), item('x', 'Vị chưa có giá', null)]
@@ -170,6 +170,20 @@ describe('thông tin khách và chuyển khoản', () => {
   it('báo thiếu domain, tầng', () => {
     expect(Object.keys(customerIssues(EMPTY_CUSTOMER)).sort()).toEqual(['domain', 'floor'])
     expect(customerIssues({ ...EMPTY_CUSTOMER, name: 'Hường', domain: 'huong.vu3', floor: '6' })).toEqual({})
+  })
+  it('đơn từ 500k yêu cầu chuyển khoản trước, không nhận tiền mặt', () => {
+    expect(LARGE_ORDER_TRANSFER_THRESHOLD).toBe(500000)
+    expect(requiresAdvanceTransfer(499999)).toBe(false)
+    expect(requiresAdvanceTransfer(500000)).toBe(true)
+    expect(requiresAdvanceTransfer(800000)).toBe(true)
+
+    const fullValid = { ...EMPTY_CUSTOMER, name: 'An', domain: 'an.nguyen2', floor: '6', payment: 'cash' as const }
+    // Dưới 500k: chọn cash bình thường
+    expect(customerIssues(fullValid, null, 480000).payment).toBeUndefined()
+    // Từ 500k trở lên: nếu chọn cash thì báo lỗi
+    expect(customerIssues(fullValid, null, 500000).payment).toBe('Đơn từ 500.000đ vui lòng chuyển khoản trước giúp quán nhé')
+    // Từ 500k trở lên: nếu chọn transfer thì hợp lệ
+    expect(customerIssues({ ...fullValid, payment: 'transfer' }, null, 500000).payment).toBeUndefined()
   })
   it('nội dung chuyển khoản dạng domain - F tầng', () => {
     expect(transferNote(' Huong.Vu3 ', 'tầng 6')).toBe('huong.vu3 - F6')
