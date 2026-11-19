@@ -140,7 +140,7 @@ begin
   end loop;
 
   if v_total >= 500000 and v_payment = 'cash' then
-    raise exception 'Đơn từ 500.000đ vui lòng chuyển khoản trước giúp quán nhé';
+    raise exception 'Đơn từ 500.000đ bạn chuyển khoản trước giúp Hogi nhé';
   end if;
 
   loop

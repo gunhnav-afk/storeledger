@@ -272,7 +272,7 @@ export function customerIssues(c: Customer, floors: string[] | null = null, tota
   else if (!validFloor(c.floor)) out.floor = 'Tầng chưa đúng (vd: 6)'
   else if (floors && !floors.includes(cleanFloor(c.floor))) out.floor = `Chỉ giao tầng ${floors.join(', ')}`
   if (c.payment === 'cash' && requiresAdvanceTransfer(total)) {
-    out.payment = 'Đơn từ 500.000đ vui lòng chuyển khoản trước giúp quán nhé'
+    out.payment = 'Đơn từ 500.000đ bạn chuyển khoản trước giúp Hogi nhé'
   }
   return out
 }

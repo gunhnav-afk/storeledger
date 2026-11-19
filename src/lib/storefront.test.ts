@@ -181,7 +181,7 @@ describe('thông tin khách và chuyển khoản', () => {
     // Dưới 500k: chọn cash bình thường
     expect(customerIssues(fullValid, null, 480000).payment).toBeUndefined()
     // Từ 500k trở lên: nếu chọn cash thì báo lỗi
-    expect(customerIssues(fullValid, null, 500000).payment).toBe('Đơn từ 500.000đ vui lòng chuyển khoản trước giúp quán nhé')
+    expect(customerIssues(fullValid, null, 500000).payment).toBe('Đơn từ 500.000đ bạn chuyển khoản trước giúp Hogi nhé')
     // Từ 500k trở lên: nếu chọn transfer thì hợp lệ
     expect(customerIssues({ ...fullValid, payment: 'transfer' }, null, 500000).payment).toBeUndefined()
   })

@@ -292,7 +292,7 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
   const onContactHangout = () => {
     if (!store?.domain) return
     navigator.clipboard?.writeText(hangoutEmail(store.domain)).catch(() => undefined)
-    toast.success(`Đã chép ${hangoutEmail(store.domain)}, dán vào Google Chat để nhắn quán`)
+    toast.success(`Đã chép ${hangoutEmail(store.domain)}, dán vào Google Chat để nhắn Hogi`)
     setCopiedContact(true)
     setTimeout(() => setCopiedContact(false), 2500)
   }
@@ -615,7 +615,7 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
             <li>
               <span className="shop-step-no">3</span>
               <strong>Đặt hàng & Nhận hàng</strong>
-              <p>Điền domain và tầng nhận hàng. Quán sẽ tự động nhận trạng thái của đơn khi bạn đặt hàng và chuyển khoản. Nếu cần tư vấn gì thêm, bạn có thể bấm "Nhắn Hangout".</p>
+              <p>Điền domain và tầng nhận hàng. Hogi sẽ tự động nhận trạng thái của đơn khi bạn đặt hàng và chuyển khoản. Nếu cần tư vấn gì thêm, bạn có thể bấm "Nhắn Hangout".</p>
             </li>
           </ol>
         </div>

@@ -74,6 +74,7 @@ export function ShopCartModal({ open, onClose, storeCode, cart, items, store, on
   const { bank, pay } = store
   const canTransfer = !!(pay || bank)
   const requiresTransfer = canTransfer && requiresAdvanceTransfer(total)
+  const brandName = store.name?.trim() ? store.name.trim().replace(/\s+Food$/i, '') : 'Hogi'
   // Đơn từ 500k trở lên bắt buộc chuyển khoản trước; nếu không thì dùng lựa chọn của khách
   const paymentMethod = requiresTransfer ? 'transfer' : customer.payment
   const effectiveCustomer = useMemo(() => ({ ...customer, payment: paymentMethod }), [customer, paymentMethod])
@@ -124,8 +125,8 @@ export function ShopCartModal({ open, onClose, storeCode, cart, items, store, on
   const placeOrder = async () => {
     if (!ready) return setTried(true)
     if (requiresTransfer && paymentMethod === 'cash') {
-      toast.error('Đơn từ 500.000đ vui lòng chuyển khoản trước giúp quán nhé.')
-      return setSubmitError('Đơn từ 500.000đ vui lòng chuyển khoản trước giúp quán nhé.')
+      toast.error(`Đơn từ 500.000đ bạn chuyển khoản trước giúp ${brandName} nhé.`)
+      return setSubmitError(`Đơn từ 500.000đ bạn chuyển khoản trước giúp ${brandName} nhé.`)
     }
     setSubmitting(true)
     setSubmitError(null)
@@ -135,7 +136,7 @@ export function ShopCartModal({ open, onClose, storeCode, cart, items, store, on
       toast.error('Chưa gửi được đơn, bạn thử lại nhé.')
       return setSubmitError(error?.message ?? 'Chưa gửi được đơn, bạn thử lại nhé.')
     }
-    toast.success(`Đã gửi đơn ${data.code} cho quán`)
+    toast.success(`Đã gửi đơn ${data.code} cho ${brandName}`)
     setPlaced({ code: data.code, total: Number(data.total), lines: data.lines.map((l) => ({ ...l, unit_price: Number(l.unit_price) })) })
     onPlaced()
   }
@@ -208,7 +209,7 @@ export function ShopCartModal({ open, onClose, storeCode, cart, items, store, on
         {placed ? (
           <>
             <m.div className="shop-success" role="status" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={SPRING}>
-              <strong>Quán đã nhận đơn {placed.code}</strong>
+              <strong>{brandName} đã nhận đơn {placed.code}</strong>
               <p>
                 {payByTransfer
                   ? 'Bạn quét mã QR bên dưới để chuyển khoản ngay, số tiền và nội dung đã có sẵn trong mã.'
@@ -391,7 +392,7 @@ export function ShopCartModal({ open, onClose, storeCode, cart, items, store, on
                 {err('payment')}
                 {requiresTransfer && (
                   <p className="shop-notice is-warn">
-                    Đơn từ <b>500.000đ</b> vui lòng chuyển khoản trước giúp quán nhé. Quán nhận đơn và bắt đầu chuẩn bị ngay khi nhận được chuyển khoản.
+                    Đơn từ <b>500.000đ</b> bạn chuyển khoản trước giúp {brandName} nhé. {brandName} sẽ bắt đầu làm món ngay sau khi nhận được chuyển khoản.
                   </p>
                 )}
                 {payByTransfer && !requiresTransfer && (
@@ -405,9 +406,9 @@ export function ShopCartModal({ open, onClose, storeCode, cart, items, store, on
             <button type="button" className="shop-send" onClick={placeOrder} disabled={submitting}>
               {submitting ? 'Đang gửi đơn…' : `Đặt hàng · ${vnd(total)}`}
             </button>
-            {tried && !ready && <small className="shop-error">Bạn điền đủ domain và chọn tầng giúp quán nhé.</small>}
+            {tried && !ready && <small className="shop-error">Bạn điền đủ domain và chọn tầng giúp {brandName} nhé.</small>}
             {submitError && <small className="shop-error">{submitError}</small>}
-            <small className="shop-hint">Bấm "Đặt hàng" là quán nhận được đơn ngay, không cần nhắn thêm.</small>
+            <small className="shop-hint">Bấm "Đặt hàng" là {brandName} nhận được đơn ngay, không cần nhắn thêm.</small>
           </>
         )}
       </m.div>
