@@ -627,6 +627,7 @@ export const ja: Record<string, string> = {
   '“Chưa mang ra”: món đã nhập nhưng chưa phân phối hũ nào ra quán.': '「未移動」：仕入れ済みですが、まだ1個も店舗へ配送していません。',
   '“Lãi/lỗ nếu bán hết” = cả đợt bán hết theo giá hiện hành trừ vốn nhập của đợt.': '「完売時の損益」= ロット全体を現在の価格で売った額からロットの仕入原価を引いた値です。',
   '⚠ Cảnh báo': '⚠ 警告',
+  'Cảnh báo tồn quầy': '店頭在庫アラート',
   'Không tạo được đợt nhập': '入荷を作成できませんでした',
   'Đã nhập hàng nhưng chưa ghi được vào Chi phí: {error}': '入荷しましたが経費に記録できませんでした: {error}',
   'Để trống đơn giá và thành tiền thì dùng giá vốn đang áp dụng vào ngày nhập. Lưu xong, tiền nhập tự ghi vào Chi phí (nhóm Đồ uống).': '単価と金額を空にすると入荷日に適用中の原価を使います。保存すると入荷金額が経費（飲料グループ）に自動記録されます。',

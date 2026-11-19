@@ -627,6 +627,7 @@ export const en: Record<string, string> = {
   '“Chưa mang ra”: món đã nhập nhưng chưa phân phối hũ nào ra quán.': '“Not moved yet”: the item was purchased but no jars have been distributed to the store.',
   '“Lãi/lỗ nếu bán hết” = cả đợt bán hết theo giá hiện hành trừ vốn nhập của đợt.': '“Profit if sold out” = the whole batch sold at current prices minus the batch’s purchase cost.',
   '⚠ Cảnh báo': '⚠ Warning',
+  'Cảnh báo tồn quầy': 'Counter stock alert',
   'Không tạo được đợt nhập': 'Could not create the purchase',
   'Đã nhập hàng nhưng chưa ghi được vào Chi phí: {error}': 'Stock was added but could not be recorded in Expenses: {error}',
   'Để trống đơn giá và thành tiền thì dùng giá vốn đang áp dụng vào ngày nhập. Lưu xong, tiền nhập tự ghi vào Chi phí (nhóm Đồ uống).': 'Leave unit price and amount empty to use the cost in effect on the purchase date. After saving, the purchase amount is recorded in Expenses (Drinks group).',

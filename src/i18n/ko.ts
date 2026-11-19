@@ -627,6 +627,7 @@ export const ko: Record<string, string> = {
   '“Chưa mang ra”: món đã nhập nhưng chưa phân phối hũ nào ra quán.': '“아직 이동 안 함”: 매입은 했지만 매장으로 배분한 수량이 없습니다.',
   '“Lãi/lỗ nếu bán hết” = cả đợt bán hết theo giá hiện hành trừ vốn nhập của đợt.': '“완판 시 손익” = 차수 전체를 현재 가격으로 판매한 금액에서 차수 매입 원가를 뺀 값입니다.',
   '⚠ Cảnh báo': '⚠ 경고',
+  'Cảnh báo tồn quầy': '매대 재고 알림',
   'Không tạo được đợt nhập': '입고를 생성하지 못했습니다',
   'Đã nhập hàng nhưng chưa ghi được vào Chi phí: {error}': '입고는 되었으나 비용에 기록하지 못했습니다: {error}',
   'Để trống đơn giá và thành tiền thì dùng giá vốn đang áp dụng vào ngày nhập. Lưu xong, tiền nhập tự ghi vào Chi phí (nhóm Đồ uống).': '단가와 금액을 비워 두면 입고일에 적용되는 원가를 사용합니다. 저장하면 입고 금액이 비용(음료 그룹)에 자동 기록됩니다.',
