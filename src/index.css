@@ -5358,13 +5358,13 @@ input.overridden {
 }
 .cat-toggle.is-pause,
 .cat-toggle.danger {
-  background: var(--surface-2);
+  background: var(--surface);
   color: var(--text-h);
   border: 1px solid var(--border);
 }
 .cat-toggle.is-pause:hover:not(:disabled),
 .cat-toggle.danger:hover:not(:disabled) {
-  background: var(--surface);
+  background: var(--surface-2);
   border-color: var(--low-fg);
   color: var(--low-fg);
 }
