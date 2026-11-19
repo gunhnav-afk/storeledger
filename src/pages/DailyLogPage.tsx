@@ -408,7 +408,7 @@ function buildRows(
     }
     rows.push({
       kind: 'data',
-      label: '⚠ Cảnh báo',
+      label: t('Cảnh báo tồn quầy'),
       format: 'text',
       total: { value: null },
       cells: days.map((d) => {
@@ -445,8 +445,8 @@ function buildRows(
     kind: 'data',
     label: 'Đã hoà vốn?',
     format: 'text',
-    total: { value: last?.is_break_even ? '✔' : '—', tone: last?.is_break_even ? 'ok' : undefined },
-    cells: summary.map((r) => ({ value: r.is_break_even ? '✔' : '—', tone: r.is_break_even ? 'ok' : undefined })),
+    total: { value: last?.is_break_even ? t('Hoà vốn') : '—', tone: last?.is_break_even ? 'ok' : undefined },
+    cells: summary.map((r) => ({ value: r.is_break_even ? t('Hoà vốn') : '—', tone: r.is_break_even ? 'ok' : undefined })),
   })
 
   // Khối 7: GHI CHÚ ĐỔI GIÁ

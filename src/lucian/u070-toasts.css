@@ -1,3 +1,4 @@
+/* hallmark: made | u070 toast notifications */
 /* Lucian UX/UI Prompt #070 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#070
    Stacking toasts: thông báo mới trồi lên phía trước, cái cũ lùi ra sau và nhỏ lại; rê chuột / focus thì xoè thành danh sách
    và dừng đếm giờ; vuốt ngang để bỏ một cái. Dùng cho cả Sổ Xanh và Hogi (src/components/ToastProvider.tsx, src/lib/toastStack.ts).
@@ -8,7 +9,7 @@
   right: 16px;
   bottom: calc(96px + env(safe-area-inset-bottom));
   z-index: 9000;
-  width: min(350px, calc(100vw - 32px));
+  width: min(350px, calc(100% - 32px));
   height: 0;
   pointer-events: none;
 }

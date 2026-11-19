@@ -1,4 +1,5 @@
 import { useI18n } from '../lib/i18n'
+import { Icon } from './Icon'
 import type { StockAlerts, StockStatus } from '../lib/analytics/overview'
 
 // Banner tồn tại quầy: đỏ (hết / cần kiểm tra), cam (sắp hết), xanh (ổn). Chỉ dùng số lượng.
@@ -7,11 +8,11 @@ export function StockAlertBanner({ alerts, restock = false }: { alerts: StockAle
   return (
     <div className={`stock-banner stock-banner-${alerts.level}`} role="status">
       {alerts.out.length > 0 && (
-        <p>⚠ {restock ? t('HẾT: {list} → nhập thêm!', { list: alerts.out.join(', ') }) : t('HẾT HÀNG TẠI CỬA HÀNG: {list} → mang thêm ra quán!', { list: alerts.out.join(', ') })}</p>
+        <p><Icon name="manage" size={15} /> {restock ? t('HẾT: {list} → nhập thêm!', { list: alerts.out.join(', ') }) : t('HẾT HÀNG TẠI CỬA HÀNG: {list} → mang thêm ra quán!', { list: alerts.out.join(', ') })}</p>
       )}
-      {alerts.check.length > 0 && <p>⚠ {t('KIỂM TRA số liệu: {list}', { list: alerts.check.join(', ') })}</p>}
-      {alerts.low.length > 0 && <p>{t('SẮP HẾT: {list}', { list: alerts.low.join(', ') })}</p>}
-      {alerts.level === 'green' && <p>✓ {t('Tồn tại quán ổn')}</p>}
+      {alerts.check.length > 0 && <p><Icon name="manage" size={15} /> {t('KIỂM TRA số liệu: {list}', { list: alerts.check.join(', ') })}</p>}
+      {alerts.low.length > 0 && <p><Icon name="manage" size={15} /> {t('SẮP HẾT: {list}', { list: alerts.low.join(', ') })}</p>}
+      {alerts.level === 'green' && <p><Icon name="check" size={15} /> {t('Tồn tại quán ổn')}</p>}
     </div>
   )
 }

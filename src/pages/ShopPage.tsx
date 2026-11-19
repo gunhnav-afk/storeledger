@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { AnimatePresence, m } from 'motion/react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/toast'
+import { Icon } from '../components/Icon'
 import { ShopCartModal } from '../components/ShopCartModal'
 import { PopNumber, ShopMotion } from '../components/ShopMotion'
 import { SOFT_SPRING, SPRING } from '../lib/shopMotion'
@@ -249,7 +250,7 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
     return (
       <div className="shop shop-loading-screen" role="alert">
         <div className="shop-loading-card">
-          <span className="shop-loading-err-icon" aria-hidden="true">🥣</span>
+          <span className="shop-loading-err-icon" aria-hidden="true"><Icon name="store" size={28} /></span>
           <h2>Chưa tải được thực đơn</h2>
           <p>Kết nối mạng hơi chậm hoặc gián đoạn, bạn bấm thử lại nhé.</p>
           <button
@@ -272,7 +273,7 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
     return (
       <div className="shop shop-loading-screen">
         <div className="shop-loading-card">
-          <span className="shop-loading-err-icon" aria-hidden="true">🔍</span>
+          <span className="shop-loading-err-icon" aria-hidden="true"><Icon name="eye" size={28} /></span>
           <h2>Không tìm thấy cửa hàng</h2>
           <p>Đường dẫn có thể chưa đúng hoặc cửa hàng tạm ngưng.</p>
         </div>
@@ -423,7 +424,7 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
 
             {isLineGom && (
               <div className="shop-disabled-banner" role="status">
-                <span className="shop-disabled-icon" aria-hidden="true">🥣</span>
+                <span className="shop-disabled-icon" aria-hidden="true"><Icon name="store" size={24} /></span>
                 <div>
                   <strong>Danh mục đang chờ mở gom</strong>
                   <p>Quán tạm thời chưa nhận đặt trước cho danh mục này. Bạn có thể xem thực đơn và theo dõi đợt mở gom tiếp theo nhé!</p>

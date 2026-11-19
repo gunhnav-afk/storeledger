@@ -329,7 +329,7 @@ export function ShopCartModal({ open, onClose, storeCode, cart, items, store, on
               <strong>{vnd(total)}</strong>
             </div>
 
-            <h4 className="shop-modal-title">📋 Thông tin nhận hàng</h4>
+            <h4 className="shop-modal-title">Thông tin nhận hàng</h4>
             <div className="shop-field-row">
               <label className="shop-field">
                 <input type="text" value={customer.domain} onChange={(e) => setField({ domain: e.target.value })} placeholder="Domain *" title="Domain nội bộ, vd: huong.vu3" autoCapitalize="none" autoCorrect="off" spellCheck={false} />
@@ -354,7 +354,7 @@ export function ShopCartModal({ open, onClose, storeCode, cart, items, store, on
 
             {canTransfer && (
               <>
-                <h4 className="shop-modal-title">💳 Thanh toán</h4>
+                <h4 className="shop-modal-title">Thanh toán</h4>
                 <div className="shop-pay" role="radiogroup" aria-label="Hình thức thanh toán">
                   <button type="button" role="radio" aria-checked={customer.payment === 'transfer'} className={customer.payment === 'transfer' ? 'active' : undefined} onClick={() => setField({ payment: 'transfer' })}>
                     Chuyển khoản ngay
@@ -365,7 +365,7 @@ export function ShopCartModal({ open, onClose, storeCode, cart, items, store, on
                 </div>
                 {payByTransfer && (
                   <p className="shop-notice">
-                    🔒 Mã QR chuyển khoản sẽ hiện sau khi bạn điền đủ <b>domain, tầng</b> và bấm <b>Đặt hàng</b>. Số tiền và nội dung có sẵn trong mã.
+                    Mã QR chuyển khoản sẽ hiện sau khi bạn điền đủ <b>domain, tầng</b> và bấm <b>Đặt hàng</b>. Số tiền và nội dung có sẵn trong mã.
                   </p>
                 )}
               </>

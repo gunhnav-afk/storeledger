@@ -1,3 +1,4 @@
+/* hallmark: made | lucian theme tokens */
 /* Lucian UX/UI Prompt theme tokens · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/
    Các phần tử Lucian (src/lucian/*) đọc màu từ --ux-*; ở đây trỏ --ux-* về biến giao diện của Sổ Xanh (index.css)
    nên tự đổi theo chế độ sáng / tối. Trang khách Hogi (.shop) luôn sáng nên dùng bảng màu riêng của trang đó. */

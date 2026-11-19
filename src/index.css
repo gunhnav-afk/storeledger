@@ -1,3 +1,4 @@
+/* hallmark: made | storeledger design system */
 /* Giao diện sáng chuyên nghiệp lấy cảm hứng từ Lofi Organic:
    xanh rừng trên nền trắng / kem, tiêu đề chữ có chân Lora, bo tròn */
 :root {
@@ -117,6 +118,12 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  overflow-x: clip;
+  scroll-padding-top: calc(var(--topbar-h, 64px) + 16px);
+}
+
 body {
   margin: 0;
   background: var(--bg);
@@ -229,9 +236,9 @@ button.primary:hover:not(:disabled) {
 button.danger {
   background: var(--danger);
   border-color: var(--danger);
-  color: #fff;
+  color: var(--accent-text);
   font-weight: 700;
-  box-shadow: 0 6px 16px -8px var(--danger);
+  box-shadow: 0 4px 14px -4px var(--danger);
 }
 button.danger:hover:not(:disabled) {
   opacity: 0.92;
@@ -606,6 +613,11 @@ a {
 }
 .content {
   padding: 22px 16px 40px;
+}
+@media (max-width: 640px) {
+  .content {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 24px));
+  }
 }
 /* Điện thoại: ẩn chữ để thanh trên gọn */
 @media (max-width: 520px) {
@@ -2976,8 +2988,8 @@ input.overridden {
    ========================================================= */
 .chat-widget-root {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  right: calc(16px + env(safe-area-inset-right, 0px));
   z-index: 1000;
   font-size: 14px;
 }
@@ -3322,7 +3334,7 @@ input.overridden {
   font-size: 12.5px;
   text-align: left;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 
 .chat-suggestion-chip:hover {
@@ -4192,7 +4204,7 @@ html:has(.shop) {
   font-weight: 700;
   font-size: 15px;
   cursor: pointer;
-  transition: all 0.15s ease-out;
+  transition: background-color 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out;
 }
 .shop-tabs button:hover:not(.active) {
   border-color: color-mix(in srgb, var(--s-green) 45%, var(--s-line));
@@ -5385,27 +5397,64 @@ html:has(.shop) {
 /* Nút chờ gom / mở bán lại: lưu ngay, đủ to để bấm trên điện thoại */
 .cat-toggle {
   min-height: 38px;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 10px;
   font-weight: 600;
+  font-size: 14px;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  cursor: pointer;
+  transition: opacity 0.15s, background-color 0.15s, border-color 0.15s, color 0.15s;
 }
 .cat-toggle.is-open {
   background: var(--ok-bg);
   color: var(--ok-fg);
-  border-color: var(--ok-fg);
+  border: 1px solid color-mix(in srgb, var(--ok-fg) 35%, transparent);
 }
+.cat-toggle.is-open:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ok-fg) 18%, var(--ok-bg));
+}
+.cat-toggle.is-pause,
 .cat-toggle.danger {
-  color: var(--danger);
+  background: var(--surface-2);
+  color: var(--text-h);
+  border: 1px solid var(--border);
+}
+.cat-toggle.is-pause:hover:not(:disabled),
+.cat-toggle.danger:hover:not(:disabled) {
+  background: var(--surface);
+  border-color: var(--low-fg);
+  color: var(--low-fg);
 }
 .storefront-cat-table tr.inactive td:last-child {
   opacity: 1;
 }
-/* Điện thoại: mỗi danh mục là một thẻ, nút trạng thái nằm ngay dưới tên, không phải cuộn ngang */
+
+/* Hàng giá set: giao diện thẻ sạch sẽ, nút xoá không bị vỡ hàng trên mobile */
+.rule-row {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  align-items: flex-end;
+  margin-bottom: 10px;
+}
+.rule-row .delete-rule-btn {
+  height: 40px;
+  margin-bottom: 2px;
+  align-self: flex-end;
+}
+
+/* Điện thoại: mỗi danh mục là một thẻ bo tròn độc lập, trạng thái và nút bấm tách bạch */
 @media (max-width: 640px) {
   .storefront-cat-table,
   .storefront-cat-table tbody {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
     width: 100%;
   }
   .storefront-cat-table thead {
@@ -5413,13 +5462,21 @@ html:has(.shop) {
   }
   .storefront-cat-table tr {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 8px 10px;
-    padding: 12px;
-    border-bottom: 1px solid var(--border);
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px 12px;
+    padding: 14px 16px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
   }
   .storefront-cat-table tr:last-child {
-    border-bottom: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .storefront-cat-table tr.inactive {
+    opacity: 0.85;
+    background: color-mix(in srgb, var(--surface) 60%, var(--surface-2));
   }
   .storefront-cat-table td {
     display: block;
@@ -5437,17 +5494,45 @@ html:has(.shop) {
     grid-column: 2;
     grid-row: 1;
     align-self: center;
+    text-align: right !important;
   }
   .storefront-cat-table td:nth-child(2),
   .storefront-cat-table td:nth-child(4) {
     grid-column: 1 / -1;
   }
   .storefront-cat-table input,
-  .storefront-cat-table select,
+  .storefront-cat-table select {
+    width: 100%;
+    min-height: 42px;
+    font-size: 15px;
+    background: var(--surface);
+  }
   .storefront-cat-table .cat-toggle {
     width: 100%;
-    min-height: 44px;
-    font-size: 16px;
+    min-height: 40px;
+    font-size: 14px;
+  }
+
+  .rule-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .rule-row > label {
+    width: 100%;
+    flex: none;
+  }
+  .rule-row .delete-rule-btn {
+    align-self: flex-end;
+    width: auto;
+  }
+}
+@media (min-width: 980px) {
+  .storefront-preview {
+    position: sticky;
+    top: calc(var(--topbar-h, 60px) + 16px);
+    align-self: start;
   }
 }
 .storefront-preview iframe {

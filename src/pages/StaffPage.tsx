@@ -527,11 +527,11 @@ export function StaffPage() {
                           <strong>{user.full_name || t('(chưa có tên)')}</strong>
                           {isSuperAdminRow ? (
                             <span className="badge badge-master" style={{ marginLeft: 6 }}>
-                              👑 Super Admin
+                              Super Admin
                             </span>
                           ) : isMaster ? (
                             <span className="badge badge-master" style={{ marginLeft: 6 }}>
-                              👑 {t('Quản trị chính')}
+                              {t('Quản trị chính')}
                             </span>
                           ) : isAdminRow ? (
                             <span className="badge badge-ok" style={{ marginLeft: 6 }}>

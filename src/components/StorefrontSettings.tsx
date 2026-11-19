@@ -342,7 +342,7 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
                   <td style={{ textAlign: 'right' }}>
                     <button
                       type="button"
-                      className={`cat-toggle${isHidden ? ' is-open' : ' danger'}`}
+                      className={`cat-toggle ${isHidden ? 'is-open' : 'is-pause'}`}
                       disabled={toggling !== null}
                       onClick={() => toggleHidden(category)}
                     >
@@ -391,7 +391,7 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
             {t('Giá (đ)')}
             <input type="text" inputMode="numeric" value={r.price} onChange={(e) => updateRule(r.uid, { price: e.target.value })} placeholder="50000" />
           </label>
-          <button type="button" className="link danger" onClick={() => setRules((rs) => rs.filter((x) => x.uid !== r.uid))}>
+          <button type="button" className="link danger delete-rule-btn" onClick={() => setRules((rs) => rs.filter((x) => x.uid !== r.uid))}>
             {t('Xoá')}
           </button>
         </div>
