@@ -102,10 +102,29 @@ function ShopLoading() {
 
 // Trang đặt trước của một quán (/hogi, /shop/<mã quán>): khách không cần đăng nhập.
 // Bán theo SET 4 hoặc 6 hũ, khách tự chọn vị cho từng set (giống kênh Công ty). Không lấy tồn kho: ai đặt gì nhận đó.
-// Hành động chính của trang: cùng một chữ ở thanh trên và hero
-const MAIN_ACTION = 'Đặt sữa chua'
-// Hero hiện ra một lần khi mở trang (nhẹ, không lặp lại khi cuộn)
-const ENTER = { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }
+// Biểu tượng nét vẽ cho 3 điểm nổi bật (thay emoji): cùng nét 1.8, 24px, màu theo chữ
+const POINT_ICONS = {
+  set: (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 9h6v9a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z" />
+      <path d="M13 9h6v9a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z" />
+      <path d="M4.5 9h7M12.5 9h7M7 6h2M15 6h2" />
+    </svg>
+  ),
+  mix: (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="9" cy="9" r="5" />
+      <circle cx="15" cy="9" r="5" />
+      <circle cx="12" cy="14.5" r="5" />
+    </svg>
+  ),
+  auto: (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="4" width="16" height="16" rx="4" />
+      <path d="M8.5 12.2l2.3 2.3 4.7-5" />
+    </svg>
+  ),
+}
 
 // Tiếng Việt cố định vì dành cho khách của quán (không đi qua bộ dịch của app).
 export function ShopPage({ code: fixedCode }: { code?: string }) {
@@ -213,17 +232,6 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
     return map
   }, [lineItems, store])
 
-  // Giá thấp nhất của từng cỡ set ở dòng món mặc định: con số cụ thể cho màn hình đầu
-  const heroPrices = useMemo(() => {
-    if (!store || !defaultLine) return null
-    const list = items.filter((i) => lineOf(i) === defaultLine && !isSingle(i))
-    const out = SET_SIZES.flatMap((s) => {
-      const hints = setPriceHints(s, list, store)
-      return hints.length ? [{ size: s, price: Math.min(...hints.map((h) => h.price)) }] : []
-    })
-    return out.length ? out : null
-  }, [items, store, defaultLine])
-
   const currentHints = sizeHints[size] ?? []
   const perJar = currentHints.length === 1 && currentHints[0].label === null
 
@@ -321,20 +329,29 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
     <ShopMotion>
     <div className={`shop${count > 0 && !open ? ' has-cart' : ''}`} id="top">
       <header className="shop-header">
-        <div className="shop-header-in wrap">
+        <div className="shop-header-in">
           <a className="shop-brand" href="#top">
             <img className="shop-logo" src="/shop/hogi-logo.png" alt={store.name} width={40} height={40} />
             <strong>{store.name}</strong>
           </a>
           <nav className="shop-nav" aria-label="Điều hướng">
-            <a href="#chon-set">Thực đơn</a>
-            <a href="#cach-dat">Giao hàng</a>
+            <a href="#chon-set">Chọn set</a>
+            <a href="#cach-dat">Cách đặt hàng</a>
             <a href="#lien-he">Liên hệ</a>
           </nav>
           <div className="shop-header-actions">
-            <a className="shop-cta shop-cta-sm shop-header-cta" href="#chon-set">
-              {MAIN_ACTION}
-            </a>
+            {store.domain && (
+              <a
+                className="shop-contact"
+                href={store.chat_url || GOOGLE_CHAT_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={onContactHangout}
+                title={hangoutEmail(store.domain)}
+              >
+                {copiedContact ? 'Đã chép ' + hangoutEmail(store.domain) + ' ✓' : 'Nhắn Hangout'}
+              </a>
+            )}
             <button type="button" className="shop-cart-btn" aria-label={`Đơn hàng, ${count} món`} onClick={() => setOpen(true)}>
               {cartIcon}
               {count > 0 && (
@@ -347,50 +364,61 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
         </div>
       </header>
 
-      <main>
-      <section className="shop-hero" data-enter>
-        <div className="shop-hero-in wrap">
-          <m.div className="shop-hero-copy hero-text" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={ENTER}>
-            <h1>Sữa chua hũ làm tay, giao tận tầng văn phòng</h1>
-            <p className="shop-hero-sub">
-              {store.tagline || 'Tự phối set 4 hoặc 6 hũ theo vị bạn thích, chuyển khoản bằng mã QR trên trang, quán mang lên đúng tầng của bạn.'}
-            </p>
+      <section className="shop-hero">
+        <div className="shop-hero-in">
+          <div className="shop-hero-copy">
+            <h1>
+              Sữa chua dẻo,
+              <em>dopamine dạng hũ.</em>
+            </h1>
+            <p>{store.tagline || 'Chọn set 4 hoặc 6 hũ, tự mix vị bạn thích rồi đặt hàng trực tiếp tiện lợi.'}</p>
             <div className="shop-hero-cta">
               <a className="shop-cta" href="#chon-set">
-                {MAIN_ACTION}
+                Chọn set ngay
               </a>
               <a className="shop-cta shop-cta-ghost" href="#cach-dat">
-                Xem cách giao hàng
+                Cách đặt hàng
               </a>
             </div>
-            {heroPrices && (
-              <dl className="shop-hero-facts">
-                {heroPrices.map((p) => (
-                  <div key={p.size}>
-                    <dt>Set {p.size} hũ</dt>
-                    <dd>từ {vnd(p.price)}</dd>
-                  </div>
-                ))}
-              </dl>
-            )}
-          </m.div>
-          <m.div className="shop-hero-photo" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ ...ENTER, delay: 0.08 }}>
-            <img
-              src="/shop/hilaplon.jpeg"
-              alt="Hộp sữa chua Hy Lạp và chai nước whey dán nhãn Hogi Food"
-              width={600}
-              height={800}
-              fetchPriority="high"
-            />
-          </m.div>
+          </div>
+          <img
+            className="shop-hero-art"
+            src="/shop/hero.svg"
+            alt="Chú hũ sữa chua Hogi cùng các vị phô mai, matcha, ca cao, nếp cẩm"
+            width={640}
+            height={420}
+          />
         </div>
       </section>
 
-      <section id="chon-set" className="shop-menu">
-        <div className="shop-menu-in wrap">
+      <ul className="shop-points">
+        <li>
+          <span aria-hidden="true">{POINT_ICONS.set}</span>
+          <div>
+            <strong>Set 4 hoặc 6 hũ</strong>
+            <small>Đặt theo set, nhiều set cũng được</small>
+          </div>
+        </li>
+        <li>
+          <span aria-hidden="true">{POINT_ICONS.mix}</span>
+          <div>
+            <strong>Tự chọn vị</strong>
+            <small>Mix đa dạng vị trong một set</small>
+          </div>
+        </li>
+        <li>
+          <span aria-hidden="true">{POINT_ICONS.auto}</span>
+          <div>
+            <strong>Tự động nhận đơn</strong>
+            <small>Chỉ cần đặt và thanh toán, nhắn hangout khi cần hỗ trợ</small>
+          </div>
+        </li>
+      </ul>
+
+      <main id="chon-set" className="shop-menu">
         <div className="shop-menu-head">
-          <h2>Thực đơn và giá set</h2>
-          <p className="shop-sub">Chọn cỡ set, bấm + ở từng vị cho đủ số hũ, rồi thêm set vào đơn.</p>
+          <h2>Tự soạn set của bạn</h2>
+          <p className="shop-sub">Chọn cỡ set, rồi chọn số hũ cho từng vị đến khi đủ.</p>
         </div>
 
         {items.length === 0 ? (
@@ -475,13 +503,13 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
                 return (
                   <div key={item.id} className="shop-card-wrap">
                   <article className={`shop-card${n > 0 ? ' is-picked' : ''}${soldOut ? ' is-soldout' : ok && !isLineGom ? '' : ' is-out'}`}>
-                    <div className="shop-art" style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }}>
+                    <div className="shop-art" style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }} aria-hidden="true">
                       {isLineGom && <span className="shop-badge-gom">Chờ mở gom</span>}
-                      {image ? <img src={image.src} alt={flavorTitle(item.name)} loading="lazy" width={520} height={430} style={frameStyle(image.frame)} /> : <span aria-hidden="true">{flavorEmoji(item.name)}</span>}
+                      {image ? <img src={image.src} alt="" loading="lazy" width={520} height={430} style={frameStyle(image.frame)} /> : <span>{flavorEmoji(item.name)}</span>}
                       {soldOut && !isLineGom && <span className="shop-soldout-tag">Hết hàng</span>}
                       <AnimatePresence>
                         {n > 0 && !isLineGom && (
-                          <m.span key="picked" className="shop-picked" aria-hidden="true" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={SPRING}>
+                          <m.span key="picked" className="shop-picked" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={SPRING}>
                             {n}
                           </m.span>
                         )}
@@ -568,51 +596,38 @@ export function ShopPage({ code: fixedCode }: { code?: string }) {
             )}
           </>
         )}
-        </div>
-      </section>
-
-      <section id="cach-dat" className="shop-deliver">
-        <div className="shop-deliver-in wrap">
-          <div className="shop-deliver-copy">
-            <h2>Giao hàng và thanh toán</h2>
-            <p className="shop-sub">Đặt trên trang này, không cần tài khoản. Quán nhận đơn ngay khi bạn chuyển khoản.</p>
-            <dl className="shop-deliver-rows">
-              <div>
-                <dt>Giao tới</dt>
-                <dd>Tầng văn phòng của bạn. Điền domain nội bộ và số tầng khi đặt.</dd>
-              </div>
-              <div>
-                <dt>Thanh toán</dt>
-                <dd>Mã VietQR hiện ngay sau khi đặt, đã có sẵn số tiền.</dd>
-              </div>
-              <div>
-                <dt>Nội dung</dt>
-                <dd>
-                  <code className="shop-syntax">domain - F6</code>
-                </dd>
-              </div>
-            </dl>
-            {store.domain && (
-              <a className="shop-cta shop-cta-ghost" href={store.chat_url || GOOGLE_CHAT_URL} target="_blank" rel="noopener noreferrer" onClick={onContactHangout} title={hangoutEmail(store.domain)}>
-                {copiedContact ? 'Đã chép ' + hangoutEmail(store.domain) : 'Nhắn quán qua Hangout'}
-              </a>
-            )}
-          </div>
-          <div className="shop-deliver-photo">
-            <img src="/shop/flan-matcha-phomai.jpg" alt="Khay bánh flan matcha và bánh flan phô mai" width={600} height={800} loading="lazy" />
-          </div>
-        </div>
-      </section>
-
       </main>
 
+      <section id="cach-dat" className="shop-steps">
+        <div className="shop-steps-in">
+          <h2>Cách đặt hàng</h2>
+          <ol>
+            <li>
+              <span className="shop-step-no">1</span>
+              <strong>Chọn cỡ set</strong>
+              <p>Set 4 hũ hoặc set 6 hũ, tuỳ nhu cầu của bạn.</p>
+            </li>
+            <li>
+              <span className="shop-step-no">2</span>
+              <strong>Chọn vị cho set</strong>
+              <p>Bấm + ở từng vị đến khi đủ số hũ rồi "Thêm set". Muốn set khác thì soạn tiếp.</p>
+            </li>
+            <li>
+              <span className="shop-step-no">3</span>
+              <strong>Đặt hàng & Nhận hàng</strong>
+              <p>Điền domain và tầng nhận hàng. Quán sẽ tự động nhận trạng thái của đơn khi bạn đặt hàng và chuyển khoản. Nếu cần tư vấn gì thêm, bạn có thể bấm "Nhắn Hangout".</p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
       <footer id="lien-he" className="shop-footer">
-        <div className="shop-footer-in wrap">
+        <div className="shop-footer-in">
           <div className="shop-footer-brand">
             <img className="shop-logo" src="/shop/hogi-logo.png" alt="" width={44} height={44} />
             <div>
               <strong>{store.name}</strong>
-              <p>Sữa chua hũ, sữa chua Hy Lạp và bánh flan làm tay.</p>
+              <p>Cảm ơn bạn đã ủng hộ 🌿</p>
             </div>
           </div>
           {(store.phone || store.domain) && (

@@ -42,8 +42,3 @@ CLAUDE.local.md
 .claude/skills/
 .claude/agents/
 skills-lock.json
-
-# Hồ sơ Chrome tạm của bộ kiểm tra taste-skill (giữ lại waivers.json, history)
-.taste-skill/chrome-*
-.taste-skill/shots/
-.taste-skill/gate.json
