@@ -26,7 +26,7 @@ function Storefront({ storeId, code, isPublic }: { storeId: string; code: string
         <div className="card storefront-preview">
           <h3 className="card-title">{t('Xem trước')}</h3>
           {isPublic ? (
-            <iframe key={version} title={t('Xem trước')} src={`/shop/${code}`} loading="lazy" />
+            <iframe key={version} title={t('Xem trước')} src={`/preview/shop/${code}`} loading="lazy" />
           ) : (
             <p className="muted">{t('Bật trang bán hàng rồi lưu cài đặt để xem trước.')}</p>
           )}

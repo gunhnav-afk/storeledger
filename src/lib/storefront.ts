@@ -401,6 +401,14 @@ export function flavorNote(name: string): string | null {
   return null
 }
 
+export const STOREFRONT_ORIGIN = 'https://hogifood.vercel.app'
+
+// Chỉ domain chứa "hogi" (ví dụ hogifood.vercel.app, hogifood.vn) mới phục vụ trang khách công khai
+export const isStorefrontHost = (hostname: string) => /hogi/i.test(hostname)
+
+export const storefrontUrl = (code: string) =>
+  code.toLowerCase() === 'hogi' ? STOREFRONT_ORIGIN : `${STOREFRONT_ORIGIN}/shop/${code}`
+
 const MENU_CACHE_PREFIX = 'hogi_public_menu_'
 
 // Lưu bộ nhớ đệm thực đơn để khách vào lại hoặc chuyển tab được tải tức thì (0ms)

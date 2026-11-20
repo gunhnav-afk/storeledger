@@ -22,8 +22,6 @@
       ],
       "destination": "/shop.html"
     },
-    { "source": "/hogi", "destination": "/shop.html" },
-    { "source": "/shop/(.*)", "destination": "/shop.html" },
     { "source": "/(.*)", "destination": "/app.html" }
   ]
 }

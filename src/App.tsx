@@ -6,6 +6,7 @@ import { TabsLayout, type Tab } from './components/TabsLayout'
 import { Suspense, lazy, type ReactNode } from 'react'
 import { useAuth } from './lib/auth'
 import { useStore } from './lib/store'
+import { isStorefrontHost } from './lib/storefront'
 import { usesDistribution, usesRevenueEntry } from './lib/storeFeatures'
 import { LoginPage } from './pages/LoginPage'
 import { NotFoundPage } from './pages/NotFoundPage'
@@ -182,12 +183,12 @@ const ShopFallback = (
 )
 
 // Nhận diện domain bán hàng riêng (ví dụ hogifood.vercel.app, hogifood.vn) để mở thẳng thực đơn khách
-const isStorefrontHost =
+const onStorefrontHost =
   typeof window !== 'undefined' &&
-  /hogi/i.test(window.location.hostname)
+  isStorefrontHost(window.location.hostname)
 
 function App() {
-  if (isStorefrontHost) {
+  if (onStorefrontHost) {
     return (
       <Routes>
         <Route path="/" element={<Suspense fallback={ShopFallback}><ShopPage code="hogi" /></Suspense>} />
@@ -201,10 +202,11 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      {/* Trang bán hàng công khai, không cần đăng nhập */}
-      <Route path="/hogi" element={<Suspense fallback={ShopFallback}><ShopPage code="hogi" /></Suspense>} />
-      <Route path="/shop/:code" element={<Suspense fallback={ShopFallback}><ShopPage /></Suspense>} />
       <Route element={<RequireAuth />}>
+        {/* Xem trước trang khách trong iframe của Trang khách (chỉ admin đã đăng nhập, không mở công khai trên domain Sổ Xanh) */}
+        <Route element={<RequireAdmin />}>
+          <Route path="preview/shop/:code" element={<Suspense fallback={ShopFallback}><ShopPage /></Suspense>} />
+        </Route>
         <Route element={<StoreScope />}>
           <Route index element={<Navigate to="/entry" replace />} />
           <Route path="entry" element={<EntryLayout />}>

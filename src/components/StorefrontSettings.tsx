@@ -7,7 +7,7 @@ import { errorMessage } from '../lib/format'
 import { BANKS } from '../lib/banks'
 import { describePayload, payloadError } from '../lib/emvQr'
 import { pageColour, withSlip } from '../lib/slip'
-import { clearCachedMenu } from '../lib/storefront'
+import { clearCachedMenu, storefrontUrl } from '../lib/storefront'
 
 // Một dòng giá set: cỡ set, áp dụng cho ('' = set mix vị chung, 'cat:<nhóm>' = set mix vị của nhóm món, còn lại là mã vị), giá (chuỗi để cho phép ô trống khi gõ)
 type RuleDraft = { uid: number; size: 4 | 6; productId: string; price: string }
@@ -43,7 +43,7 @@ export function StorefrontSettings({ storeId, code, onSaved }: { storeId: string
   const [saved, setSaved] = useState<Draft | null>(null)
   // Danh mục đang lưu trạng thái chờ gom / mở bán
   const [toggling, setToggling] = useState<string | null>(null)
-  const link = code === 'hogi' ? 'https://hogifood.vercel.app' : `${window.location.origin}/shop/${code}`
+  const link = storefrontUrl(code)
 
   useEffect(() => {
     let cancelled = false

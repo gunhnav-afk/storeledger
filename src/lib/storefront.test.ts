@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { preorderPayload, cartCount, cartSingles, cartSummary, lineTitle, setSingleQty, singleQty, unitOf, EMPTY_CUSTOMER, addSet, menuLines, setPriceHints, customerIssues, transferNote, cleanFloor, validDomain, validFloor, vietQrUrl, cartJars, cartSets, cartTotal, changeMix, flavorColors, flavorImage, flavorNote, flavorPosition, getCachedMenu, setCachedMenu, mixLabel, orderMessage, refreshCart, selectable, setLineQty, setPrice, zaloLink, hangoutEmail, isSoldOut, soldOutLast, LARGE_ORDER_TRANSFER_THRESHOLD, requiresAdvanceTransfer, type MenuItem, type PublicMenu } from './storefront'
+import { preorderPayload, cartCount, cartSingles, cartSummary, lineTitle, setSingleQty, singleQty, unitOf, EMPTY_CUSTOMER, addSet, menuLines, setPriceHints, customerIssues, transferNote, cleanFloor, validDomain, validFloor, vietQrUrl, cartJars, cartSets, cartTotal, changeMix, flavorColors, flavorImage, flavorNote, flavorPosition, getCachedMenu, setCachedMenu, mixLabel, orderMessage, refreshCart, selectable, setLineQty, setPrice, zaloLink, hangoutEmail, isSoldOut, soldOutLast, LARGE_ORDER_TRANSFER_THRESHOLD, requiresAdvanceTransfer, isStorefrontHost, storefrontUrl, type MenuItem, type PublicMenu } from './storefront'
 
 const item = (id: string, name: string, price: number | null): MenuItem => ({ id, name, category: null, price })
 const items = [item('tt', 'Truyền thống', 12000), item('pm', 'Phô mai', 15000), item('mc', 'Matcha', 15000), item('x', 'Vị chưa có giá', null)]
@@ -317,5 +317,19 @@ describe('món hết hàng', () => {
     const next = refreshCart(cart, [...yogurt, greek], rules)
     expect(next).toHaveLength(1)
     expect(next[0]).toMatchObject({ kind: 'set', mix: { mc: 4 } })
+  })
+})
+
+describe('tên miền trang khách', () => {
+  it('chỉ bật trang khách trên domain hogi, không bật trên domain Sổ Xanh', () => {
+    expect(isStorefrontHost('hogifood.vercel.app')).toBe(true)
+    expect(isStorefrontHost('hogifood.vn')).toBe(true)
+    expect(isStorefrontHost('storeledger-one.vercel.app')).toBe(false)
+    expect(isStorefrontHost('localhost')).toBe(false)
+  })
+  it('tạo liên kết trang khách luôn trỏ về domain hogi', () => {
+    expect(storefrontUrl('hogi')).toBe('https://hogifood.vercel.app')
+    expect(storefrontUrl('HOGI')).toBe('https://hogifood.vercel.app')
+    expect(storefrontUrl('other')).toBe('https://hogifood.vercel.app/shop/other')
   })
 })
