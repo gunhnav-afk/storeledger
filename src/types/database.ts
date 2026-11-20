@@ -30,6 +30,7 @@ export type Store = {
   is_public: boolean
   public_phone: string | null
   public_tagline: string | null
+  public_contact_domain?: string | null
   // Chuyển khoản hiện trên trang công khai, 20261025150000_public_storefront_bank.sql (cần đủ cả ba)
   public_bank_code: string | null
   public_bank_account: string | null
@@ -738,7 +739,7 @@ export type Database = {
       preorders: {
         Row: Preorder
         Insert: never
-        Update: { status?: PreorderStatus }
+        Update: { status?: PreorderStatus; payment?: 'transfer' | 'cash' }
         Relationships: [
           { foreignKeyName: 'preorders_store_id_fkey'; columns: ['store_id']; isOneToOne: false; referencedRelation: 'stores'; referencedColumns: ['id'] },
         ]

@@ -48,6 +48,7 @@ export function wrapText(measure: (text: string) => number, text: string, maxWid
 const loadImage = (src: string) =>
   new Promise<HTMLImageElement | null>((resolve) => {
     const img = new Image()
+    if (/^https?:/i.test(src)) img.crossOrigin = 'anonymous'
     img.onload = () => resolve(img)
     img.onerror = () => resolve(null)
     img.src = src
@@ -177,11 +178,17 @@ export async function renderInvoice(data: InvoiceData): Promise<HTMLCanvasElemen
   return canvas
 }
 
-// Tạo ảnh hoá đơn và tải về máy
-export async function downloadInvoice(data: InvoiceData): Promise<void> {
+// Tạo ảnh PNG dạng Blob để tải về hoặc sao chép vào clipboard
+export async function invoiceBlob(data: InvoiceData): Promise<Blob> {
   const canvas = await renderInvoice(data)
   const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))
   if (!blob) throw new Error('Không tạo được ảnh hoá đơn')
+  return blob
+}
+
+// Tạo ảnh hoá đơn và tải về máy
+export async function downloadInvoice(data: InvoiceData): Promise<void> {
+  const blob = await invoiceBlob(data)
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
@@ -190,4 +197,59 @@ export async function downloadInvoice(data: InvoiceData): Promise<void> {
   a.click()
   a.remove()
   setTimeout(() => URL.revokeObjectURL(url), 2000)
+}
+
+// Sao chép ảnh hoá đơn PNG vào clipboard để dán thẳng vào Hangout / Zalo
+export async function copyInvoiceImage(data: InvoiceData): Promise<void> {
+  if (typeof ClipboardItem === 'undefined' || !navigator.clipboard?.write) {
+    throw new Error('UNSUPPORTED_CLIPBOARD_IMAGE')
+  }
+  const blob = await invoiceBlob(data)
+  await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+}
+
+// In hoá đơn (kèm mã QR nếu có) qua iframe ẩn để không bị chặn popup và chỉ in đúng tờ hoá đơn
+export async function printInvoice(data: InvoiceData): Promise<void> {
+  const canvas = await renderInvoice(data)
+  const dataUrl = canvas.toDataURL('image/png')
+  const frame = document.createElement('iframe')
+  frame.style.position = 'fixed'
+  frame.style.right = '0'
+  frame.style.bottom = '0'
+  frame.style.width = '0'
+  frame.style.height = '0'
+  frame.style.border = '0'
+  frame.setAttribute('aria-hidden', 'true')
+  document.body.appendChild(frame)
+
+  const cleanup = () => {
+    setTimeout(() => frame.remove(), 500)
+  }
+
+  try {
+    const doc = frame.contentDocument
+    const win = frame.contentWindow
+    if (!doc || !win) throw new Error('Không khởi tạo được khung in')
+    doc.open()
+    doc.write(
+      `<!doctype html><html><head><meta charset="utf-8"><title>HoaDon-${data.code}</title><style>@page{margin:8mm;}body{margin:0;display:flex;justify-content:center;background:#fff;}img{width:100%;max-width:720px;height:auto;display:block;}</style></head><body><img src="${dataUrl}" alt="" /></body></html>`,
+    )
+    doc.close()
+    await new Promise<void>((resolve) => {
+      const img = doc.querySelector('img')
+      if (!img || img.complete) return resolve()
+      img.onload = () => resolve()
+      img.onerror = () => resolve()
+    })
+    win.addEventListener('afterprint', cleanup, { once: true })
+    win.focus()
+    win.print()
+    // Phòng trường hợp trình duyệt không bắn sự kiện afterprint
+    setTimeout(() => {
+      if (frame.isConnected) frame.remove()
+    }, 60_000)
+  } catch (err) {
+    frame.remove()
+    throw err
+  }
 }

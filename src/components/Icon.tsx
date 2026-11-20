@@ -28,6 +28,10 @@ const PATHS = {
   close: 'M18 6L6 18M6 6l12 12',
   sparkle: 'M12 3v3m0 12v3m9-9h-3M6 12H3m14.8-6.8l-2.1 2.1M7.3 16.7l-2.1 2.1m12.8 0l-2.1-2.1M7.3 7.3L5.2 5.2',
   trash: 'M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2',
+  qr: 'M3 3h7v7H3V3zm11 0h7v7h-7V3zM3 14h7v7H3v-7zm11 0h3v3h-3v-3zm4 4h3v3h-3v-3zm-4 3h3m4-7v3',
+  printer: 'M6 9V3h12v6M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v7H6v-7z',
+  download: 'M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2',
+  copy: 'M9 9h10a2 2 0 012 2v8a2 2 0 01-2 2H9a2 2 0 01-2-2v-8a2 2 0 012-2zM5 15H4a2 2 0 01-2-2V5a2 2 0 012-2h8a2 2 0 012 2v1',
 } as const
 
 export type IconName = keyof typeof PATHS
