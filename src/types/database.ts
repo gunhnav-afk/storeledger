@@ -372,6 +372,13 @@ export type PurchaseItemInput = {
   unit_cost: number | null
 }
 
+export type UpdatePurchaseBatchItemInput = {
+  batch_id: string | null
+  product_id: string
+  quantity: number
+  unit_cost: number
+}
+
 export type SaleItemInput = {
   product_id: string
   quantity: number
@@ -801,6 +808,10 @@ export type Database = {
       }
       delete_stock_disposal: { Args: { p_disposal_id: string }; Returns: undefined }
       set_purchase_payment: { Args: { p_purchase_id: string; p_paid_on: string | null }; Returns: undefined }
+      update_purchase_batch: {
+        Args: { p_purchase_id: string; p_note: string | null; p_items: UpdatePurchaseBatchItemInput[] }
+        Returns: undefined
+      }
       create_sale: { Args: CreateSaleArgs; Returns: string }
       get_stock_status: { Args: { p_store_id: string }; Returns: StockStatusRow[] }
       get_pnl: { Args: GetPnlArgs; Returns: PnlRow[] }

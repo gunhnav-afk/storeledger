@@ -5826,6 +5826,7 @@ input.overridden {
   line-height: 1.55;
   color: var(--muted);
   word-break: break-word;
+  white-space: pre-line;
 }
 
 .confirm-prompt-form {
@@ -6107,6 +6108,112 @@ input.overridden {
 .payment-unmark {
   margin-right: auto;
   color: var(--danger);
+}
+
+/* Báo cáo → Theo đợt nhập: nút sửa đợt nhập + hộp thoại chỉnh sửa */
+.batch-col-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.batch-edit-btn {
+  min-height: 24px;
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 1.2;
+}
+.batch-edit-dialog {
+  max-width: 560px;
+  max-height: 90dvh;
+  overflow-y: auto;
+  gap: 14px;
+}
+.batch-edit-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.batch-edit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.batch-edit-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+.batch-edit-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.batch-edit-name {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.batch-edit-diff {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.batch-edit-diff.pos {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+.batch-edit-diff.neg {
+  background: rgba(242, 135, 124, 0.16);
+  color: var(--danger);
+}
+.batch-edit-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.batch-edit-controls .price-input {
+  width: 112px;
+}
+.batch-edit-subtotal {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.batch-edit-add {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.batch-edit-add select {
+  flex: 1;
+  min-width: 0;
+}
+.batch-edit-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.batch-edit-summary > div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.batch-edit-summary strong {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-h);
 }
 
 /* Nhập liệu → Hàng huỷ */

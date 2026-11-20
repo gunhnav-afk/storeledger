@@ -6,6 +6,9 @@ export type BatchLineStat = {
   batchLineId: string
   productId: string
   qty: number
+  unitCost: number
+  // Số hũ hiện còn ở nhà (có thể giảm khi sửa đợt nhập)
+  qtyHome: number
   cost: number
   sold: number
   // Số hũ huỷ vì không đủ chất lượng bán
@@ -117,7 +120,18 @@ export function batchStats(
           }
         }
       }
-      return { batchLineId: line.id, productId: line.productId, qty: line.qty, cost: line.qty * line.unitCost, sold, disposed, remaining, soldOutDate }
+      return {
+        batchLineId: line.id,
+        productId: line.productId,
+        qty: line.qty,
+        unitCost: line.unitCost,
+        qtyHome: line.qtyHome ?? remaining,
+        cost: line.qty * line.unitCost,
+        sold,
+        disposed,
+        remaining,
+        soldOutDate,
+      }
     })
 
     const totalQty = sum(lineStats.map((l) => l.qty))

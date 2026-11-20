@@ -36,6 +36,7 @@ type DisposalRow = {
 // Dữ liệu thô của một cửa hàng cho các báo cáo phân tích (chỉ admin đọc được qua RLS)
 export function useAnalyticsData(storeId: string) {
   const [state, setState] = useState<{ storeId: string; data: AnalyticsData | null; error: string | null } | null>(null)
+  const [version, setVersion] = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -43,7 +44,7 @@ export function useAnalyticsData(storeId: string) {
       const [products, purchases, batches, transfers, sales, expenses, disposals] = await Promise.all([
         supabase.from('products').select('*').eq('store_id', storeId),
         supabase.from('purchases').select('id, purchase_date, note, paid_on').eq('store_id', storeId).order('purchase_date').order('created_at'),
-        supabase.from('stock_batches').select('id, purchase_id, product_id, received_date, initial_qty, unit_cost').eq('store_id', storeId),
+        supabase.from('stock_batches').select('id, purchase_id, product_id, received_date, initial_qty, unit_cost, qty_home').eq('store_id', storeId),
         supabase.from('stock_transfers').select('product_id, quantity, transfer_date, destination, note').eq('store_id', storeId),
         supabase
           .from('sales')
@@ -85,6 +86,7 @@ export function useAnalyticsData(storeId: string) {
           productId: b.product_id,
           qty: b.initial_qty,
           unitCost: b.unit_cost,
+          qtyHome: b.qty_home,
         })),
         sales: saleRows.flatMap((s) =>
           s.sale_items.map((i) => ({
@@ -147,8 +149,9 @@ export function useAnalyticsData(storeId: string) {
     return () => {
       cancelled = true
     }
-  }, [storeId])
+  }, [storeId, version])
 
   const ready = state?.storeId === storeId
-  return { loading: !ready, error: ready ? state.error : null, data: ready ? state.data : null }
+  const reload = () => setVersion((v) => v + 1)
+  return { loading: !ready, error: ready ? state.error : null, data: ready ? state.data : null, reload }
 }

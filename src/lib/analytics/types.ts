@@ -18,6 +18,8 @@ export type ABatchLine = {
   productId: string
   qty: number
   unitCost: number
+  // Tồn hiện còn ở nhà của lô (dùng để giới hạn số lượng khi sửa đợt nhập)
+  qtyHome?: number
 }
 
 export type APurchase = {
