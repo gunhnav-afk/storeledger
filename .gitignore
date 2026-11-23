@@ -42,3 +42,8 @@ CLAUDE.local.md
 .claude/skills/
 .claude/agents/
 skills-lock.json
+
+# Database dumps & backup files
+supabase/*.sql
+!supabase/migrations/*.sql
+supabase/*.json

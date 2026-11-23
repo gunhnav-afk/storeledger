@@ -92,7 +92,7 @@ begin
          and p.store_id = v_store.id
          and p.is_active
          and p.public_sale_mode = 'set'
-         and not (coalesce(p.category, '') = any (coalesce(v_store.public_hidden_categories, '{}')));
+         and not (coalesce(p.category, '') = any (coalesce(v_store.public_hidden_categories, '{}')))
         where (e.value)::integer > 0
         order by p.name
       loop

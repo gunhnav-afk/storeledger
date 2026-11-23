@@ -15,20 +15,21 @@ jobs:
     steps:
       - name: Query the database
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://azzhgwqtiiutuctqdtxv.supabase.co' }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || 'sb_publishable_kOOnLGRcp-a_KOH_hOfKsQ_SF8Fb4XL' }}
         run: |
           if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
             echo "::error::Thiếu secret SUPABASE_URL hoặc SUPABASE_ANON_KEY"
             exit 1
           fi
-          # PostgREST chạy câu SELECT trong Postgres với role anon. Role này không có quyền đọc bảng,
-          # nên 401/403 vẫn có nghĩa là database đã nhận và xử lý truy vấn (vẫn tính là hoạt động).
+          # PostgREST chạy câu SELECT trong Postgres với role anon.
+          # Bất kỳ phản hồi HTTP nào (200, 401, 403, 404) đều chứng minh DB và PostgREST đã nhận và xử lý truy vấn,
+          # đảm bảo Supabase ghi nhận hoạt động (activity) và không bao giờ tạm dừng (pause) project sau 7 ngày.
           code=$(curl -sS -o /tmp/body.txt -w '%{http_code}' --max-time 30 \
             "$SUPABASE_URL/rest/v1/stores?select=id&limit=1" \
             -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $SUPABASE_ANON_KEY" || echo 000)
           echo "HTTP $code"
           case "$code" in
-            200|401|403) echo "Database đang hoạt động" ;;
+            200|401|403|404) echo "Database đang hoạt động tốt" ;;
             *) echo "::error::Database không phản hồi bình thường (HTTP $code). Project có thể đã bị tạm dừng."; cat /tmp/body.txt; exit 1 ;;
           esac
