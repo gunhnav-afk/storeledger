@@ -32,15 +32,11 @@ graphify-out
 
 # Local Harness configs & agent memories
 CLAUDE.local.md
-.claude/settings.local.json
-.claude/agent-memory/*
-!.claude/agent-memory/README.md
+.claude/
 .agent/
 .agents/
 .codex/
 .gemini/
-.claude/skills/
-.claude/agents/
 skills-lock.json
 
 # Database dumps & backup files
