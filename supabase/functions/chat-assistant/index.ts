@@ -32,12 +32,11 @@ const CORS_HEADERS = {
 };
 
 const API = "https://generativelanguage.googleapis.com/v1beta";
-// Model ưu tiên: Gemini 3.8 Flash (trả lời hợp lý nhất, có suy nghĩ ngắn), dự phòng 3.6 Flash (nhanh hơn).
-// Bỏ 3.8 Flash-Lite: API trả 404 (không có model này). Model ưu tiên không có trong danh sách API trả về thì bỏ qua,
-// để không phí một lượt gọi mỗi lần khởi động. Ghi đè được bằng secret GEMINI_MODELS.
+// Model ưu tiên: Gemini 2.0 Flash (chuẩn production, phản hồi siêu tốc < 1s), dự phòng Gemini 1.5 Flash.
+// Ghi đè được bằng secret GEMINI_MODELS.
 const PREFERRED_MODELS = (
   Deno.env.get("GEMINI_MODELS") ??
-  "gemini-3.8-flash,gemini-3.6-flash"
+  "gemini-2.0-flash,gemini-1.5-flash"
 )
   .split(",")
   .map((m) => m.trim())
@@ -468,9 +467,9 @@ async function loadModels(apiKey: string): Promise<string[]> {
   }
 }
 
-// Suy nghĩ ngắn để trả lời hợp lý mà vẫn nhanh: thinkingLevel "low" (Gemini 3) -> ngân sách nhỏ 512 token (Gemini 2.5)
-// -> không gửi tham số nếu model không nhận cả hai.
-const THINKING_MODES: (Record<string, unknown> | null)[] = [{ thinkingLevel: "low" }, { thinkingBudget: 512 }, null];
+// Model chuẩn (gemini-2.0-flash, gemini-1.5-flash) phản hồi ngay khi không gửi thinkingConfig (tránh lỗi 400).
+// Với các model hỗ trợ thinking (thinking-exp hoặc 2.5), có thể fallback sang thinkingBudget / thinkingLevel.
+const THINKING_MODES: (Record<string, unknown> | null)[] = [null, { thinkingBudget: 512 }, { thinkingLevel: "low" }];
 let thinkingMode = 0;
 const deadModels = new Set<string>();
 const cooldownUntil = new Map<string, number>();
