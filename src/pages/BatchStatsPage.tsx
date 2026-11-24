@@ -113,6 +113,27 @@ function BatchStats({ storeId }: { storeId: string }) {
           }}
         />
       )}
+      <div className="stats">
+        <div className="stat">
+          <div className="stat-label">{t('Lãi gộp')}</div>
+          <div className="stat-value">{money(totals.grossProfit)}</div>
+        </div>
+        <div className="stat">
+          <div className="stat-label">{t('Trừ chi phí')}</div>
+          <div className="stat-value">{money(-totals.expenses)}</div>
+        </div>
+        {totals.disposedValue > 0 && (
+          <div className="stat">
+            <div className="stat-label">{t('Trừ hàng huỷ')}</div>
+            <div className="stat-value">{money(-totals.disposedValue)}</div>
+          </div>
+        )}
+        <div className="stat">
+          <div className="stat-label">{t('Lợi nhuận ròng tất cả các đợt')}</div>
+          <div className="stat-value">{money(totals.netProfit)}</div>
+          {unpaidCost > 0 && <div className="stat-sub">{t('Chưa trả: {value}', { value: formatVND(unpaidCost) })}</div>}
+        </div>
+      </div>
       <div className="table-wrap batch-wrap">
         <table className="batch-table">
           <thead>

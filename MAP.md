@@ -104,6 +104,7 @@ web-nhap-lieu/
 │
 ├── supabase/                   # Cấu hình và mã nguồn Backend Supabase
 │   ├── config.toml             # Cấu hình dự án Supabase cục bộ
+│   ├── backup_before_cleanup_2026-11-24.json # (gitignore) Bản sao các dòng đã xoá / sửa khi dọn dữ liệu trùng sau migrate
 │   ├── migrations/             # Các file migration SQL (gồm 20261025250000_enable_vault.sql kích hoạt Supabase Vault, 20261101090000_revenue_dau_den.sql thêm kênh doanh thu Bán dầu đen, 20261104090000_stock_disposals_purchase_payment.sql thêm bảng hàng huỷ stock_disposals + purchases.paid_on, 20261107044100_product_images.sql thêm bucket product-images + cột products.image_url/image_x/image_y/image_zoom, 20261107050834_dba_hardening.sql siết quyền EXECUTE hàm, search_path Vault, index khoá ngoại, gộp policy ingredients, 20261116090000_product_sold_out.sql thêm products.public_sold_out: món tạm hết hàng trên trang khách, submit_preorder từ chối, 20261120112000_edit_purchase_batch.sql thêm RPC update_purchase_batch cho phép admin sửa đợt nhập)
 │   └── functions/              # Edge Functions chạy trên nền tảng Deno
 │       ├── admin-users/        # Quản lý tài khoản nhân viên

@@ -32,11 +32,11 @@ const CORS_HEADERS = {
 };
 
 const API = "https://generativelanguage.googleapis.com/v1beta";
-// Model ưu tiên: Gemini 2.0 Flash (chuẩn production, phản hồi siêu tốc < 1s), dự phòng Gemini 1.5 Flash.
+// Model ưu tiên: Gemini Flash Lite (cực nhanh 1.3s - 1.7s, phản hồi tức thì), dự phòng gemini-flash-latest.
 // Ghi đè được bằng secret GEMINI_MODELS.
 const PREFERRED_MODELS = (
   Deno.env.get("GEMINI_MODELS") ??
-  "gemini-2.0-flash,gemini-1.5-flash"
+  "gemini-flash-lite-latest,gemini-flash-latest"
 )
   .split(",")
   .map((m) => m.trim())

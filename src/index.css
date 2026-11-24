@@ -612,7 +612,8 @@ a {
   background: var(--accent);
 }
 .content {
-  padding: 22px 16px 40px;
+  /* chừa chỗ cho nút Roona cố định góc dưới phải */
+  padding: 22px 16px 88px;
 }
 @media (max-width: 640px) {
   .content {
@@ -2553,16 +2554,6 @@ select option {
   left: auto;
   right: 0;
 }
-@media (max-width: 640px) {
-  .row > .field:last-child .date-popover,
-  .row > label:last-child .date-popover,
-  .row > .field:nth-child(even) .date-popover,
-  .row > label:nth-child(even) .date-popover,
-  .filters .date-picker:last-child .date-popover {
-    left: auto;
-    right: 0;
-  }
-}
 .date-head {
   display: flex;
   align-items: center;
@@ -2845,8 +2836,8 @@ td.actions {
 .batch-table th.sticky-col,
 .batch-table td.sticky-col {
   white-space: normal;
-  min-width: 96px;
-  max-width: 150px;
+  min-width: 132px;
+  max-width: 180px;
 }
 .batch-table .batch-date {
   display: block;
@@ -3506,6 +3497,10 @@ input.overridden {
   }
   .chat-widget-root:not(.is-open) .chat-toggle-btn {
     padding: 4px;
+  }
+  /* Trang có thanh Lưu cố định dưới đáy: đẩy nút lên trên thanh */
+  body:has(.pos-mobilebar) .chat-widget-root:not(.is-open) {
+    translate: 0 calc(-64px - env(safe-area-inset-bottom, 0px));
   }
 }
 @media (max-width: 640px) {

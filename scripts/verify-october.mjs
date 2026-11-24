@@ -137,7 +137,9 @@ async function main() {
   const { count: saleItemsCount } = await supabase.from('sale_items').select('*', { count: 'exact', head: true });
   const { count: transferCount } = await supabase.from('stock_transfers').select('*', { count: 'exact', head: true }).eq('store_id', HOGI_STORE_ID);
   const { count: batchesCount } = await supabase.from('stock_batches').select('*', { count: 'exact', head: true }).eq('store_id', HOGI_STORE_ID);
-  const { count: companySetsCount } = await supabase.from('company_sets').select('*', { count: 'exact', head: true }).eq('store_id', HOGI_STORE_ID);
+  // company_sets bị revoke quyền đọc trực tiếp, phải đếm qua RPC
+  const { data: companySets } = await supabase.rpc('get_company_sets_history', { p_store_id: HOGI_STORE_ID, p_from: null, p_to: null });
+  const companySetsCount = companySets?.length ?? 0;
   const { count: preordersCount } = await supabase.from('preorders').select('*', { count: 'exact', head: true }).eq('store_id', HOGI_STORE_ID);
 
   console.log('\n--- 5. DỮ LIỆU HOGI FOOD (Bán hàng, Đơn đặt, Tồn kho) ---');
@@ -148,9 +150,7 @@ async function main() {
   console.log(`- Set công ty (company_sets):   ${companySetsCount} set`);
   console.log(`- Đơn đặt trước (preorders):    ${preordersCount} đơn`);
 
-  console.log('\n============================================================');
-  console.log('KẾT LUẬN: TOÀN BỘ DỮ LIỆU THÁNG 10 ĐẦY ĐỦ 100%, KHÔNG MẤT BẤT KỲ DÒNG NÀO!');
-  console.log('============================================================');
+  console.log('\nĐối chiếu các số trên với DB cũ / Google Sheet trước khi kết luận.');
 }
 
 main().catch(err => {

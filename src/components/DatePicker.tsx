@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { addDays, monthStart, todayVN } from '../lib/format'
 import { LANGUAGES, useI18n } from '../lib/i18n'
 import { Icon } from './Icon'
@@ -34,20 +34,26 @@ export function DatePicker({
   const { t } = useI18n()
   const fmt = useDateFormat()
   const [open, setOpen] = useState(false)
-  const [autoAlignRight, setAutoAlignRight] = useState(false)
-  const isAlignRight = align === 'right' || (align === 'auto' && autoAlignRight)
+  const [isAlignRight, setIsAlignRight] = useState(align === 'right')
+  // Độ lệch (px) khi căn trái hay phải đều tràn: dịch popover vào trong màn hình
+  const [shiftLeft, setShiftLeft] = useState<number | null>(null)
   const ref = useRef<HTMLDivElement>(null)
 
-  // Tự động căn lề phải nếu popover mở ra bị tràn mép phải màn hình
-  useEffect(() => {
-    if (!open || align !== 'auto') return
+  // align chỉ là ưu tiên: đo vị trí thật, phía nào tràn màn hình thì lật sang phía còn lại.
+  useLayoutEffect(() => {
+    if (!open) return
     const updateAlign = () => {
       if (!ref.current) return
       const rect = ref.current.getBoundingClientRect()
-      const popoverWidth = 310
-      const overflowsRight = rect.left + popoverWidth > window.innerWidth
-      const hasRoomLeft = rect.right >= popoverWidth
-      setAutoAlignRight(overflowsRight || (rect.left > window.innerWidth / 2 && hasRoomLeft))
+      const gutter = 12
+      const popoverWidth = Math.min(300, window.innerWidth - 2 * gutter)
+      const fitsLeft = rect.left + popoverWidth <= window.innerWidth - gutter
+      const fitsRight = rect.right - popoverWidth >= gutter
+      let right = align === 'right' || (align === 'auto' && rect.left > window.innerWidth / 2)
+      if (right && !fitsRight && fitsLeft) right = false
+      if (!right && !fitsLeft && fitsRight) right = true
+      setIsAlignRight(right)
+      setShiftLeft(fitsLeft || fitsRight ? null : window.innerWidth - gutter - popoverWidth - rect.left)
     }
     updateAlign()
     window.addEventListener('resize', updateAlign)
@@ -87,7 +93,12 @@ export function DatePicker({
         </span>
       </button>
       {open && (
-        <div className={`date-popover${isAlignRight ? ' align-right' : ''}`} role="dialog" aria-label={label}>
+        <div
+          className={`date-popover${isAlignRight && shiftLeft === null ? ' align-right' : ''}`}
+          style={shiftLeft === null ? undefined : { left: shiftLeft, right: 'auto' }}
+          role="dialog"
+          aria-label={label}
+        >
           <Calendar
             value={value}
             max={max}

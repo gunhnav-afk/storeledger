@@ -312,7 +312,7 @@ function SaleForm({
   return (
     <section>
       <h2>{t('Bán hàng')}</h2>
-      {alerts && <StockAlertBanner alerts={alerts} />}
+      {alerts && !isCompany && <StockAlertBanner alerts={alerts} />}
       <form className="pos" onSubmit={handleSubmit(onSubmit)}>
         <div className="pos-main card">
           <div className="row">

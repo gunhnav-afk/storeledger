@@ -79,16 +79,19 @@ if (menuSheet) {
     const priceApp = Number(item['GIÁ APP CUỐI (đ)'] || item['Giá app đề xuất (đ)'] || priceInStore)
 
     if (name) {
-      sql += `  select id into v_pid from public.products where store_id = v_store_id and name = '${name}' limit 1;\n`
+      sql += `  select id into v_pid from public.products where store_id = v_store_id and lower(btrim(name)) = lower('${name}') limit 1;\n`
       sql += `  if v_pid is null then\n`
       sql += `    insert into public.products (store_id, name, category, tracks_stock, low_stock_threshold, is_active, public_sale_mode, public_sold_out)\n`
       sql += `    values (v_store_id, '${name}', '${category}', false, 0, true, 'single', false) returning id into v_pid;\n`
       sql += `  else\n`
       sql += `    update public.products set category = '${category}', is_active = true where id = v_pid;\n`
       sql += `  end if;\n`
-      sql += `  insert into public.product_prices (product_id, effective_from, sale_price, app_price)\n`
-      sql += `  values (v_pid, '2026-10-01', ${priceInStore}, ${priceApp})\n`
-      sql += `  on conflict (product_id, effective_from) do update set sale_price = excluded.sale_price, app_price = excluded.app_price;\n\n`
+      // Sheet để trống giá thì giữ giá cũ, không ghi đè thành 0
+      if (priceInStore > 0) {
+        sql += `  insert into public.product_prices (product_id, effective_from, sale_price, app_price)\n`
+        sql += `  values (v_pid, '2026-10-01', ${priceInStore}, ${priceApp})\n`
+        sql += `  on conflict (product_id, effective_from) do update set sale_price = excluded.sale_price, app_price = excluded.app_price;\n\n`
+      }
     }
   }
 }
@@ -132,7 +135,7 @@ for (const sheetName of monthSheets) {
         const note = escapeSql(name)
         sql += `  insert into public.expenses (store_id, expense_date, category, note, amount, quantity, unit_price)\n`
         sql += `  select v_store_id, '${dateStr}', '${cat}', '${note}', ${amount}, 1, ${amount}\n`
-        sql += `  where not exists (select 1 from public.expenses where store_id = v_store_id and expense_date = '${dateStr}' and note = '${note}' and amount = ${amount});\n`
+        sql += `  where not exists (select 1 from public.expenses where store_id = v_store_id and expense_date = '${dateStr}' and lower(btrim(note)) = lower('${note}') and amount = ${amount});\n`
       }
     }
   }
