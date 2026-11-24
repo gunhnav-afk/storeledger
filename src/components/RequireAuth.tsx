@@ -1,13 +1,14 @@
 import { Link, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { useI18n } from '../lib/i18n'
+import { DEFAULT_MASTER_ADMIN_EMAIL } from '../lib/brand'
 import { ErrorPage } from './ErrorPage'
 
 export function RequireAuth() {
   const { session, profile, loading, signOut } = useAuth()
   const { t } = useI18n()
   const location = useLocation()
-  const contactEmail = (import.meta.env.VITE_MASTER_ADMIN_EMAIL ?? '').trim()
+  const contactEmail = (import.meta.env.VITE_MASTER_ADMIN_EMAIL || DEFAULT_MASTER_ADMIN_EMAIL).trim()
 
   if (loading) return <p className="center muted">{t('Đang tải…')}</p>
   if (!session) {

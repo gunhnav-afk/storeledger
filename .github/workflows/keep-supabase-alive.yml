@@ -22,6 +22,7 @@ jobs:
             echo "::error::Thiếu secret SUPABASE_URL hoặc SUPABASE_ANON_KEY"
             exit 1
           fi
+          echo "Target Supabase project: $SUPABASE_URL"
           # PostgREST chạy câu SELECT trong Postgres với role anon.
           # Bất kỳ phản hồi HTTP nào (200, 401, 403, 404) đều chứng minh DB và PostgREST đã nhận và xử lý truy vấn,
           # đảm bảo Supabase ghi nhận hoạt động (activity) và không bao giờ tạm dừng (pause) project sau 7 ngày.

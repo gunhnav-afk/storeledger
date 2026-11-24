@@ -2,9 +2,10 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { AuthContext, type AuthState } from '../lib/auth'
+import { DEFAULT_MASTER_ADMIN_EMAIL } from '../lib/brand'
 import type { Profile } from '../types/database'
 
-const MASTER_EMAIL = (import.meta.env.VITE_MASTER_ADMIN_EMAIL ?? '').trim().toLowerCase()
+const MASTER_EMAIL = (import.meta.env.VITE_MASTER_ADMIN_EMAIL || DEFAULT_MASTER_ADMIN_EMAIL).trim().toLowerCase()
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)

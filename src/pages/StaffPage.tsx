@@ -12,8 +12,9 @@ import type { AdminUserRow, UserRole } from '../types/database'
 import { StorePicker } from '../components/StorePicker'
 import { PasswordInput } from '../components/PasswordInput'
 import { Icon, type IconName } from '../components/Icon'
+import { DEFAULT_MASTER_ADMIN_EMAIL } from '../lib/brand'
 
-const MASTER_EMAIL = (import.meta.env.VITE_MASTER_ADMIN_EMAIL ?? '').trim().toLowerCase()
+const MASTER_EMAIL = (import.meta.env.VITE_MASTER_ADMIN_EMAIL || DEFAULT_MASTER_ADMIN_EMAIL).trim().toLowerCase()
 
 type FormValues = { full_name: string; email: string; password: string; role: UserRole; store_ids: string[] }
 
