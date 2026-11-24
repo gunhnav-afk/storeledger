@@ -342,6 +342,7 @@ function SaleForm({
                     max={todayVN()}
                     label={t('Ngày bán')}
                     invalid={!!fieldState.error}
+                    align="right"
                   />
                 )}
               />

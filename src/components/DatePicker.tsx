@@ -21,6 +21,7 @@ export function DatePicker({
   min,
   label,
   invalid,
+  align = 'auto',
 }: {
   value: string
   onChange: (value: string) => void
@@ -28,11 +29,30 @@ export function DatePicker({
   min?: string
   label: string
   invalid?: boolean
+  align?: 'left' | 'right' | 'auto'
 }) {
   const { t } = useI18n()
   const fmt = useDateFormat()
   const [open, setOpen] = useState(false)
+  const [autoAlignRight, setAutoAlignRight] = useState(false)
+  const isAlignRight = align === 'right' || (align === 'auto' && autoAlignRight)
   const ref = useRef<HTMLDivElement>(null)
+
+  // Tự động căn lề phải nếu popover mở ra bị tràn mép phải màn hình
+  useEffect(() => {
+    if (!open || align !== 'auto') return
+    const updateAlign = () => {
+      if (!ref.current) return
+      const rect = ref.current.getBoundingClientRect()
+      const popoverWidth = 310
+      const overflowsRight = rect.left + popoverWidth > window.innerWidth
+      const hasRoomLeft = rect.right >= popoverWidth
+      setAutoAlignRight(overflowsRight || (rect.left > window.innerWidth / 2 && hasRoomLeft))
+    }
+    updateAlign()
+    window.addEventListener('resize', updateAlign)
+    return () => window.removeEventListener('resize', updateAlign)
+  }, [open, align])
 
   // Bấm ra ngoài hoặc Esc thì đóng
   useEffect(() => {
@@ -67,7 +87,7 @@ export function DatePicker({
         </span>
       </button>
       {open && (
-        <div className="date-popover" role="dialog" aria-label={label}>
+        <div className={`date-popover${isAlignRight ? ' align-right' : ''}`} role="dialog" aria-label={label}>
           <Calendar
             value={value}
             max={max}

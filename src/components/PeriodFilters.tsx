@@ -28,7 +28,7 @@ export function PeriodFilters({ value, today, onChange }: { value: PeriodState; 
       </div>
       <div className="field">
         {t('Đến ngày')}
-        <DatePicker value={value.range.to} onChange={(v) => onChange({ preset: 'custom', range: { ...value.range, to: v } })} label={t('Đến ngày')} />
+        <DatePicker value={value.range.to} onChange={(v) => onChange({ preset: 'custom', range: { ...value.range, to: v } })} label={t('Đến ngày')} align="right" />
       </div>
     </div>
   )
