@@ -10,6 +10,7 @@ export type TbAuthState = {
   isManager: boolean
   isSuperAdmin: boolean
   signIn: (email: string, password: string) => Promise<void>
+  signInWithGoogle: () => Promise<void>
   signUp: (fullName: string, email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   refreshProfile: () => void

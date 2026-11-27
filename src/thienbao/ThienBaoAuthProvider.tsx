@@ -60,6 +60,16 @@ export function ThienBaoAuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error
   }, [])
 
+  const signInWithGoogle = useCallback(async () => {
+    const { error } = await tbSupabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/`,
+      },
+    })
+    if (error) throw error
+  }, [])
+
   const signUp = useCallback(async (fullName: string, email: string, password: string) => {
     const { error } = await tbSupabase.auth.signUp({
       email,
@@ -94,11 +104,24 @@ export function ThienBaoAuthProvider({ children }: { children: ReactNode }) {
       isManager,
       isSuperAdmin,
       signIn,
+      signInWithGoogle,
       signUp,
       signOut,
       refreshProfile,
     }),
-    [session, profile, loading, profileError, isManager, isSuperAdmin, signIn, signUp, signOut, refreshProfile],
+    [
+      session,
+      profile,
+      loading,
+      profileError,
+      isManager,
+      isSuperAdmin,
+      signIn,
+      signInWithGoogle,
+      signUp,
+      signOut,
+      refreshProfile,
+    ],
   )
 
   return <TbAuthContext.Provider value={value}>{children}</TbAuthContext.Provider>
