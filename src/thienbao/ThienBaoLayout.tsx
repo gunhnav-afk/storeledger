@@ -11,8 +11,9 @@ import { useWorkshop } from './workshop'
 type NavItem = { to: string; label: string; icon: IconName; managerOnly?: boolean }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: '/attendance', label: 'Quản lý chấm công', icon: 'calendar', managerOnly: true },
-  { to: '/checkin', label: 'Quét QR chấm công', icon: 'qr' },
+  { to: '/qr-setup', label: 'Mã QR & Vị trí GPS', icon: 'qr', managerOnly: true },
+  { to: '/attendance', label: 'Bảng chấm công', icon: 'calendar', managerOnly: true },
+  { to: '/checkin', label: 'Quét QR chấm công', icon: 'check' },
   { to: '/orders', label: 'Mã hàng xưởng', icon: 'product' },
   { to: '/workers', label: 'Nhân sự', icon: 'staff', managerOnly: true },
 ]

@@ -15,6 +15,7 @@ const ThienBaoAccountPage = lazy(() =>
   import('./ThienBaoAccountPage').then((m) => ({ default: m.ThienBaoAccountPage })),
 )
 const CheckinPage = lazy(() => import('./pages/CheckinPage').then((m) => ({ default: m.CheckinPage })))
+const QrSetupPage = lazy(() => import('./pages/QrSetupPage').then((m) => ({ default: m.QrSetupPage })))
 const AttendanceAdminPage = lazy(() =>
   import('./pages/AttendanceAdminPage').then((m) => ({ default: m.AttendanceAdminPage })),
 )
@@ -104,8 +105,12 @@ function WorkshopScope() {
 }
 
 function HomeRedirect() {
-  const { isManager } = useWorkshop()
-  return <Navigate to={isManager ? '/attendance' : '/checkin'} replace />
+  const { isManager, config } = useWorkshop()
+  if (isManager) {
+    const hasGps = config?.latitude != null && config?.longitude != null
+    return <Navigate to={hasGps ? '/attendance' : '/qr-setup'} replace />
+  }
+  return <Navigate to="/checkin" replace />
 }
 
 function RequireManager({ children }: { children: ReactNode }) {
@@ -132,6 +137,14 @@ export function ThienBaoApp() {
             <Route element={<WorkshopScope />}>
               <Route index element={<HomeRedirect />} />
               <Route path="checkin" element={<CheckinPage />} />
+              <Route
+                path="qr-setup"
+                element={
+                  <RequireManager>
+                    <QrSetupPage />
+                  </RequireManager>
+                }
+              />
               <Route
                 path="attendance/*"
                 element={

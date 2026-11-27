@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useToast } from '../../lib/toast'
 import { errorMessage, formatDate, monthEnd, monthStart, todayVN } from '../../lib/format'
 import {
@@ -63,7 +63,7 @@ function requestBrowserGps(onDone: (next: GpsState) => void): void {
 
 export function CheckinPage() {
   const { session } = useTbAuth()
-  const { config } = useWorkshop()
+  const { config, isManager } = useWorkshop()
   const toast = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
   const qrToken = searchParams.get('k')?.trim() ?? ''
@@ -203,7 +203,12 @@ export function CheckinPage() {
 
         {!workshopPoint ? (
           <div className="tb-gps-status warn">
-            <span>Quản lý chưa cài đặt toạ độ Google Maps cho xưởng. Liên hệ quản lý để thiết lập vị trí xưởng.</span>
+            <span>Quản lý chưa cài đặt toạ độ Google Maps cho xưởng.</span>
+            {isManager && (
+              <Link to="/qr-setup" className="button primary">
+                Chọn vị trí GPS & In mã QR ngay
+              </Link>
+            )}
           </div>
         ) : (
           <p className="muted" style={{ marginTop: 0 }}>

@@ -1,11 +1,13 @@
 import QRCode from 'qrcode'
 
-// Sinh ảnh bảng QR tĩnh sắc nét để in dán tại cửa xưởng may
-export async function renderQrPosterPng(opts: {
+export type QrPosterOptions = {
   checkinUrl: string
   address: string | null
   radiusMeters: number
-}): Promise<string> {
+}
+
+// Sinh ảnh bảng QR tĩnh sắc nét để in dán tại cửa xưởng may
+export async function renderQrPosterPng(opts: QrPosterOptions): Promise<string> {
   const qrDataUrl = await QRCode.toDataURL(opts.checkinUrl, {
     width: 520,
     margin: 2,
@@ -28,7 +30,6 @@ export async function renderQrPosterPng(opts: {
   const ctx = canvas.getContext('2d')!
   const font = (size: number, weight = 500) => `${weight} ${size}px "Be Vietnam Pro", system-ui, sans-serif`
 
-  // Nền sáng có khung viền in rõ nét
   ctx.fillStyle = '#ffffff'
   ctx.fillRect(0, 0, width, height)
 
@@ -44,7 +45,6 @@ export async function renderQrPosterPng(opts: {
   ctx.font = font(21, 600)
   ctx.fillText('MÃ QR CHẤM CÔNG NHÂN VIÊN TẠI XƯỞNG', width / 2, 122)
 
-  // Khung chứa QR
   const qrSize = 500
   const qrX = (width - qrSize) / 2
   const qrY = 224
@@ -53,7 +53,6 @@ export async function renderQrPosterPng(opts: {
   ctx.strokeRect(qrX - 18, qrY - 18, qrSize + 36, qrSize + 36)
   ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize)
 
-  // Hướng dẫn 3 bước ngắn gọn cho công nhân
   let y = qrY + qrSize + 76
   ctx.fillStyle = '#13293d'
   ctx.font = font(24, 700)
@@ -80,4 +79,49 @@ export async function renderQrPosterPng(opts: {
   ctx.fillText(`${place}Bán kính GPS hợp lệ: ${opts.radiusMeters}m`, width / 2, y)
 
   return canvas.toDataURL('image/png')
+}
+
+// Mở hộp thoại máy in trực tiếp qua iframe ẩn (không bị trình duyệt chặn popup)
+export async function printQrPoster(opts: QrPosterOptions): Promise<void> {
+  const pngDataUrl = await renderQrPosterPng(opts)
+  const iframe = document.createElement('iframe')
+  iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;'
+  document.body.appendChild(iframe)
+
+  const doc = iframe.contentDocument ?? iframe.contentWindow?.document
+  if (!doc) {
+    iframe.remove()
+    throw new Error('Không mở được trình in của trình duyệt')
+  }
+
+  doc.open()
+  doc.write(`<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>In mã QR chấm công — Thiên Bảo Clothes</title>
+  <style>
+    @page { size: A4 portrait; margin: 12mm; }
+    html, body { margin: 0; padding: 0; background: #fff; display: flex; justify-content: center; align-items: center; min-height: 100%; }
+    img { max-width: 100%; max-height: 265mm; width: auto; height: auto; display: block; border: 1px solid #d8ddd6; }
+  </style>
+</head>
+<body>
+  <img id="poster" src="${pngDataUrl}" alt="Mã QR Chấm công Thiên Bảo Clothes" />
+</body>
+</html>`)
+  doc.close()
+
+  const img = doc.getElementById('poster') as HTMLImageElement | null
+  await new Promise<void>((resolve) => {
+    if (!img || img.complete) resolve()
+    else {
+      img.onload = () => resolve()
+      img.onerror = () => resolve()
+    }
+  })
+
+  iframe.contentWindow?.focus()
+  iframe.contentWindow?.print()
+  window.setTimeout(() => iframe.remove(), 60_000)
 }

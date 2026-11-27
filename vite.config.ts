@@ -29,6 +29,7 @@ export default defineConfig({
             // (không gom mọi node_modules vào 1 chunk vendor, vì chunk đó sẽ bị tải ngay lần đầu)
             { name: 'charts', test: /node_modules[\\/](recharts|d3-[^\\/]+|victory-vendor|@reduxjs|react-redux|redux|reselect|immer|es-toolkit|decimal\.js-light|eventemitter3|use-sync-external-store|tiny-invariant)[\\/]/, priority: 2 },
             { name: 'xlsx', test: /node_modules[\\/](xlsx|fflate)[\\/]/, priority: 2 },
+            { name: 'leaflet', test: /node_modules[\\/]leaflet[\\/]/, priority: 2 },
           ],
         },
       },

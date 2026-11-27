@@ -117,10 +117,10 @@ web-nhap-lieu/
 │       ├── ThienBaoLogo.tsx    # Logo vector Thiên Bảo Clothes
 │       ├── workshop.ts         # Context & hook useWorkshop đọc cấu hình xưởng
 │       ├── WorkshopContext.tsx # Provider tải cấu hình xưởng, vị trí Google Maps và quyền quản lý
-│       ├── qrPoster.ts         # Vẽ bảng mã QR tĩnh khổ in PNG để dán tại cửa xưởng
+│       ├── qrPoster.ts         # Vẽ và in trực tiếp bảng mã QR tĩnh khổ A4/PNG để dán tại cửa xưởng
 │       ├── thienbao.css        # Biến màu và bố cục riêng của phân hệ xưởng may
-│       ├── components/QrCameraScanner.tsx # Khung quét mã QR trực tiếp bằng camera trình duyệt
-│       └── pages/              # CheckinPage (quét QR + kiểm tra GPS + giờ công cá nhân), AttendanceAdminPage (theo dõi ngày, bảng giờ công xuất Excel, cài đặt mã QR & bản đồ Google Maps), OrdersPage (mã hàng xưởng may), WorkersPage (nhân sự xưởng)
+│       ├── components/         # QrCameraScanner.tsx (quét QR camera), InteractiveMapPicker.tsx (bản đồ Google/Vệ tinh bấm chọn & kéo thả ghim GPS kèm vòng tròn bán kính)
+│       └── pages/              # QrSetupPage (in mã QR & chọn điểm GPS trực tiếp trên bản đồ), CheckinPage (quét QR + kiểm tra GPS + giờ công cá nhân), AttendanceAdminPage (theo dõi ngày & bảng giờ công xuất Excel), OrdersPage (mã hàng xưởng may), WorkersPage (nhân sự xưởng)
 │
 ├── supabase-thienbao/supabase/ # Hạ tầng Backend Supabase ĐỘC LẬP của Thiên Bảo Clothes (project zfawfaqqvfqzydnhrhkq)
 │   ├── config.toml             # Cấu hình Auth URL & Edge Function cho ThienBaoClothes
