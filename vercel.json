@@ -9,6 +9,18 @@
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
       ]
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "(?<subdomain>.*)thienbao(?<domain>.*)"
+        }
+      ],
+      "headers": [
+        { "key": "Permissions-Policy", "value": "camera=(self), geolocation=(self), microphone=()" }
+      ]
     }
   ],
   "rewrites": [
@@ -21,6 +33,16 @@
         }
       ],
       "destination": "/shop.html"
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "(?<subdomain>.*)thienbao(?<domain>.*)"
+        }
+      ],
+      "destination": "/thienbao.html"
     },
     { "source": "/(.*)", "destination": "/app.html" }
   ]

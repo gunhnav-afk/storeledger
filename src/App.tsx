@@ -5,6 +5,7 @@ import { StoreProvider } from './components/StoreProvider'
 import { TabsLayout, type Tab } from './components/TabsLayout'
 import { Suspense, lazy, type ReactNode } from 'react'
 import { useAuth } from './lib/auth'
+import { isThienBaoHost } from './lib/hostScope'
 import { useStore } from './lib/store'
 import { isStorefrontHost } from './lib/storefront'
 import { usesDistribution, usesRevenueEntry } from './lib/storeFeatures'
@@ -33,6 +34,7 @@ const StockPage = lazy(() => import('./pages/StockPage').then((m) => ({ default:
 const StorefrontPage = lazy(() => import('./pages/StorefrontPage').then((m) => ({ default: m.StorefrontPage })))
 const TransferPage = lazy(() => import('./pages/TransferPage').then((m) => ({ default: m.TransferPage })))
 const ShopPage = lazy(() => import('./pages/ShopPage').then((m) => ({ default: m.ShopPage })))
+const ThienBaoApp = lazy(() => import('./thienbao/ThienBaoApp').then((m) => ({ default: m.ThienBaoApp })))
 
 // Menu chia hai phần cho mọi quán: Nhập liệu = những gì người dùng tự nhập hoặc tải file lên;
 // Báo cáo = số liệu hệ thống tự tính từ dữ liệu đã nhập. Mỗi phần là một trang có hàng tab.
@@ -187,7 +189,20 @@ const onStorefrontHost =
   typeof window !== 'undefined' &&
   isStorefrontHost(window.location.hostname)
 
+// Nhận diện domain xưởng may Thiên Bảo Clothes (thienbaoclothes.vercel.app)
+const onThienBaoHost =
+  typeof window !== 'undefined' &&
+  isThienBaoHost(window.location.hostname, window.location.search)
+
 function App() {
+  if (onThienBaoHost) {
+    return (
+      <Suspense fallback={<p className="center muted">Đang tải…</p>}>
+        <ThienBaoApp />
+      </Suspense>
+    )
+  }
+
   if (onStorefrontHost) {
     return (
       <Routes>

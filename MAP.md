@@ -58,9 +58,11 @@ web-nhap-lieu/
 │
 ├── scripts/                    # Các script tự động hoá tiện ích
 │   ├── check-i18n.mjs          # Script quét kiểm tra thiếu sót khoá ngôn ngữ i18n
+│   ├── generate-shop-html.mjs  # Hậu kỳ build sinh dist/app.html, dist/shop.html (Hogi) và dist/thienbao.html (Thiên Bảo Clothes)
 │   └── worktree.sh             # Script hỗ trợ tạo/xoá git worktree và sync file cấu hình
 │
 ├── public/                     # Tài nguyên tĩnh phục vụ web
+│   ├── thienbao-logo.svg       # Biểu tượng thương hiệu xưởng may Thiên Bảo Clothes
 │   ├── shop/                   # Hình ảnh vector SVG minh hoạ món ăn đồng bộ thương hiệu
 │   │   ├── flavor-truyen-thong.svg   # Sữa chua vị Truyền thống
 │   │   ├── flavor-pho-mai.svg        # Sữa chua vị Phô mai
@@ -96,11 +98,34 @@ web-nhap-lieu/
 │   │   ├── companySalesHistory.ts # Tổng hợp lịch sử đơn bán kênh Công ty (khối trong tab Báo cáo, pages/CompanySalesHistory.tsx)
 │   │   ├── batchEdit.ts        # Kiểm tra và tính chênh lệch khi admin sửa số lượng / giá vốn / ghi chú đợt nhập (test: batchEdit.test.ts)
 │   │   ├── analytics/disposals.test.ts # Test hàng huỷ (trừ tồn theo nơi để, giá trị huỷ theo lô) và ngày thanh toán đợt nhập
+│   │   ├── hostScope.ts        # Nhận diện domain (Sổ Xanh vs Hogi vs thienbaoclothes.vercel.app) & giữ URL quét QR qua đăng nhập (test: hostScope.test.ts)
+│   │   ├── garmentGps.ts       # Đọc link/toạ độ Google Maps, tính khoảng cách Haversine (m) & quy đổi giờ công (test: garmentGps.test.ts)
 │   │   └── dailyCalendar.ts    # Gom đơn bán theo ngày (Quán / Công ty, số set đọc từ ghi chú) + lưới lịch tháng cho pages/DailyCalendar.tsx (Nhật ký ngày → Lịch tháng)
 │   ├── lucian/                 # CSS phần tử Lucian UX/UI Prompt (lucianlabs.dev/uxui-prompt, MIT): tokens.css ánh xạ --ux-* sang biến giao diện,
 │   │                           #   u070-toasts.css (chồng thông báo), u219-theme.css (đổi giao diện vòng tròn); giữ dòng license đầu file
 │   ├── components/             # Các component tái sử dụng (ProductImageEditor = khung chọn / xoay / kéo căn / phóng ảnh món ở Sản phẩm → Ảnh, Header, CartModal, ShopMotion (khung motion + PopNumber; không có hiệu ứng hiện dần khi cuộn), Settings, StorefrontStock = công tắc Còn hàng / Hết hàng từng món trên trang khách (lưu ngay khi bấm), UpdateWatcher tự tải lại khi có bản mới...)
-│   └── pages/                  # Các trang màn hình giao diện (ShopPage, Revenue, Expenses, DisposalPage = Nhập liệu → Hàng huỷ ghi hàng không đủ chất lượng bán, BatchStatsPage = Báo cáo → Theo đợt nhập kèm cột thanh toán / hàng huỷ...)
+│   ├── pages/                  # Các trang màn hình giao diện Sổ Xanh & Hogi (ShopPage, Revenue, Expenses, DisposalPage = Nhập liệu → Hàng huỷ ghi hàng không đủ chất lượng bán, BatchStatsPage = Báo cáo → Theo đợt nhập kèm cột thanh toán / hàng huỷ...)
+│   └── thienbao/               # Phân hệ riêng cho domain thienbaoclothes.vercel.app (kết nối cụm DB độc lập zfawfaqqvfqzydnhrhkq, tiếng Việt cố định)
+│       ├── types.ts            # Kiểu dữ liệu Database riêng của Thiên Bảo Clothes (4 bảng độc lập)
+│       ├── supabase.ts         # Supabase client kết nối riêng tới cụm DB ThienBaoClothes
+│       ├── auth.ts             # Context & hook useTbAuth xác thực riêng của Thiên Bảo Clothes
+│       ├── ThienBaoAuthProvider.tsx # Provider phiên đăng nhập & hồ sơ nhân sự Thiên Bảo Clothes
+│       ├── ThienBaoLoginPage.tsx # Màn hình đăng nhập & đăng ký nhân viên Thiên Bảo Clothes
+│       ├── ThienBaoAccountPage.tsx # Trang tài khoản cá nhân & đổi mật khẩu của nhân viên xưởng
+│       ├── ThienBaoApp.tsx     # Router & phân quyền Quản lý / Nhân viên xưởng may
+│       ├── ThienBaoLayout.tsx  # Khung điều hướng thương hiệu Thiên Bảo Clothes
+│       ├── ThienBaoLogo.tsx    # Logo vector Thiên Bảo Clothes
+│       ├── workshop.ts         # Context & hook useWorkshop đọc cấu hình xưởng
+│       ├── WorkshopContext.tsx # Provider tải cấu hình xưởng, vị trí Google Maps và quyền quản lý
+│       ├── qrPoster.ts         # Vẽ bảng mã QR tĩnh khổ in PNG để dán tại cửa xưởng
+│       ├── thienbao.css        # Biến màu và bố cục riêng của phân hệ xưởng may
+│       ├── components/QrCameraScanner.tsx # Khung quét mã QR trực tiếp bằng camera trình duyệt
+│       └── pages/              # CheckinPage (quét QR + kiểm tra GPS + giờ công cá nhân), AttendanceAdminPage (theo dõi ngày, bảng giờ công xuất Excel, cài đặt mã QR & bản đồ Google Maps), OrdersPage (mã hàng xưởng may), WorkersPage (nhân sự xưởng)
+│
+├── supabase-thienbao/supabase/ # Hạ tầng Backend Supabase ĐỘC LẬP của Thiên Bảo Clothes (project zfawfaqqvfqzydnhrhkq)
+│   ├── config.toml             # Cấu hình Auth URL & Edge Function cho ThienBaoClothes
+│   ├── migrations/20261128010000_thienbao_standalone_init.sql # Lược đồ 4 bảng độc lập + kiểm tra bán kính GPS Haversine + tính giờ công
+│   └── functions/admin-users/  # Edge Function tạo tài khoản & đổi mật khẩu nhân viên xưởng may
 │
 ├── supabase/                   # Cấu hình và mã nguồn Backend Supabase
 │   ├── config.toml             # Cấu hình dự án Supabase cục bộ

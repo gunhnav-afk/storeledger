@@ -1,6 +1,5 @@
-# Giữ project Supabase (gói miễn phí) không bị tạm dừng vì 7 ngày không hoạt động:
-# cứ 2 ngày gửi một truy vấn nhỏ tới database qua REST API.
-# Cần 2 secret của repo: SUPABASE_URL và SUPABASE_ANON_KEY (Settings → Secrets → Actions).
+# Giữ cả 2 cụm project Supabase (StoreLedger & ThienBaoClothes - gói miễn phí) không bị tạm dừng:
+# cứ 2 ngày gửi một truy vấn nhỏ tới từng database qua REST API.
 name: Keep Supabase alive
 
 on:
@@ -13,24 +12,28 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Query the database
+      - name: Ping StoreLedger & ThienBaoClothes databases
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://azzhgwqtiiutuctqdtxv.supabase.co' }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || 'sb_publishable_kOOnLGRcp-a_KOH_hOfKsQ_SF8Fb4XL' }}
+          THIENBAO_SUPABASE_URL: 'https://zfawfaqqvfqzydnhrhkq.supabase.co'
+          THIENBAO_SUPABASE_ANON_KEY: 'sb_publishable_YMTCq9DdUV4gFZM6oGcvMA_sGjIEier'
         run: |
-          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
-            echo "::error::Thiếu secret SUPABASE_URL hoặc SUPABASE_ANON_KEY"
-            exit 1
-          fi
-          echo "Target Supabase project: $SUPABASE_URL"
-          # PostgREST chạy câu SELECT trong Postgres với role anon.
-          # Bất kỳ phản hồi HTTP nào (200, 401, 403, 404) đều chứng minh DB và PostgREST đã nhận và xử lý truy vấn,
-          # đảm bảo Supabase ghi nhận hoạt động (activity) và không bao giờ tạm dừng (pause) project sau 7 ngày.
-          code=$(curl -sS -o /tmp/body.txt -w '%{http_code}' --max-time 30 \
-            "$SUPABASE_URL/rest/v1/stores?select=id&limit=1" \
-            -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $SUPABASE_ANON_KEY" || echo 000)
-          echo "HTTP $code"
-          case "$code" in
-            200|401|403|404) echo "Database đang hoạt động tốt" ;;
-            *) echo "::error::Database không phản hồi bình thường (HTTP $code). Project có thể đã bị tạm dừng."; cat /tmp/body.txt; exit 1 ;;
-          esac
+          ping_project() {
+            local name="$1"
+            local url="$2"
+            local key="$3"
+            local table="$4"
+            echo "Target Supabase project ($name): $url"
+            code=$(curl -sS -o /tmp/body.txt -w '%{http_code}' --max-time 30 \
+              "$url/rest/v1/$table?select=id&limit=1" \
+              -H "apikey: $key" -H "Authorization: Bearer $key" || echo 000)
+            echo "$name HTTP $code"
+            case "$code" in
+              200|401|403|404) echo "$name đang hoạt động tốt" ;;
+              *) echo "::error::$name không phản hồi bình thường (HTTP $code)."; cat /tmp/body.txt; exit 1 ;;
+            esac
+          }
+
+          ping_project "StoreLedger" "$SUPABASE_URL" "$SUPABASE_ANON_KEY" "stores"
+          ping_project "ThienBaoClothes" "$THIENBAO_SUPABASE_URL" "$THIENBAO_SUPABASE_ANON_KEY" "workshop_settings"
