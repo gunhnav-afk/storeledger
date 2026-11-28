@@ -12,7 +12,7 @@ function getDetectorCtor(): BarcodeDetectorCtor | null {
   return w.BarcodeDetector ?? null
 }
 
-// Khung quét mã QR trực tiếp bằng camera sau trên trình duyệt hỗ trợ BarcodeDetector (Chrome Android / iOS 17+)
+// Khung quét mã QR trực tiếp bằng camera sau trên trình duyệt hỗ trợ BarcodeDetector
 export function QrCameraScanner({
   onDetected,
   onClose,
@@ -66,7 +66,7 @@ export function QrCameraScanner({
         timerId = window.setTimeout(tick, 250)
       } catch {
         if (!cancelled) {
-          setCamError('Không mở được camera. Hãy cho phép quyền Camera hoặc dùng trực tiếp ứng dụng Camera / Zalo của điện thoại để quét tờ mã QR.')
+          setCamError('Không mở được camera. Hãy cấp quyền Camera hoặc dùng trực tiếp ứng dụng Camera / Zalo trên điện thoại.')
         }
       }
     }
@@ -80,23 +80,29 @@ export function QrCameraScanner({
   }, [onDetected])
 
   return (
-    <div className="card" style={{ marginTop: 12 }}>
+    <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
       <div className="tb-toolbar" style={{ marginBottom: 8 }}>
-        <strong>Đưa mã QR tại xưởng vào khung hình</strong>
-        <button type="button" onClick={onClose}>
-          Đóng camera
+        <strong style={{ fontSize: 13.5 }}>Đưa mã QR tại xưởng vào khung hình</strong>
+        <button type="button" className="tb-ghost" onClick={onClose}>
+          Đóng
         </button>
       </div>
       {!supported ? (
-        <p className="muted">
-          Trình duyệt này chưa hỗ trợ quét trực tiếp trong trang. Bạn chỉ cần mở ứng dụng <strong>Camera mặc định</strong> hoặc{' '}
-          <strong>Zalo</strong> trên điện thoại và quét thẳng tờ mã QR dán ở xưởng là sẽ tự mở trang chấm công này.
+        <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+          Trình duyệt này chưa hỗ trợ quét trực tiếp trong trang. Bạn hãy mở ứng dụng <strong>Camera</strong> hoặc{' '}
+          <strong>Zalo</strong> trên điện thoại và quét thẳng bảng QR dán ở xưởng.
         </p>
       ) : camError ? (
         <p className="error">{camError}</p>
       ) : (
         <div className="tb-scanner-box">
-          <video ref={videoRef} muted playsInline className="tb-scanner-video" />
+          <video
+            ref={videoRef}
+            muted
+            playsInline
+            poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='340' height='340'%3E%3Crect width='100%25' height='100%25' fill='%230e1014'/%3E%3C/svg%3E"
+            className="tb-scanner-video"
+          />
         </div>
       )}
     </div>

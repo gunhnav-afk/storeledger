@@ -11,17 +11,17 @@ import { useWorkshop } from './workshop'
 type NavItem = { to: string; label: string; icon: IconName; managerOnly?: boolean }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: '/qr-setup', label: 'Mã QR & Vị trí GPS', icon: 'qr', managerOnly: true },
-  { to: '/attendance', label: 'Bảng chấm công', icon: 'calendar', managerOnly: true },
-  { to: '/checkin', label: 'Quét QR chấm công', icon: 'check' },
-  { to: '/orders', label: 'Mã hàng xưởng', icon: 'product' },
+  { to: '/qr-setup', label: 'Mã QR & Vị trí', icon: 'qr', managerOnly: true },
+  { to: '/attendance', label: 'Chấm công', icon: 'calendar', managerOnly: true },
+  { to: '/checkin', label: 'Quét QR', icon: 'check' },
+  { to: '/orders', label: 'Mã hàng', icon: 'product' },
   { to: '/workers', label: 'Nhân sự', icon: 'staff', managerOnly: true },
 ]
 
 const THEME_CHOICES: { value: ThemeMode; label: string; icon: IconName }[] = [
   { value: 'light', label: 'Sáng', icon: 'sun' },
   { value: 'dark', label: 'Tối', icon: 'moon' },
-  { value: 'system', label: 'Theo máy', icon: 'monitor' },
+  { value: 'system', label: 'Tự động', icon: 'monitor' },
 ]
 
 function initials(name: string): string {
@@ -54,42 +54,42 @@ export function ThienBaoLayout() {
   const visibleItems = NAV_ITEMS.filter((item) => !item.managerOnly || isManager)
 
   return (
-    <div className="layout">
-      <header className="topbar" ref={topbarRef}>
-        <div className="topbar-inner">
-          <div className="topbar-row">
-            <span className="brand">
-              <ThienBaoLogo size={36} />
-              <span className="brand-text">{THIENBAO_BRAND}</span>
-              <span className="tb-subbrand">Xưởng may</span>
-            </span>
-            <span className="spacer" />
-            <ThienBaoUserMenu
-              name={displayName}
-              roleLabel={roleLabel}
-              onSignOut={async () => {
-                await signOut()
-                navigate('/login', { replace: true })
-              }}
-            />
-          </div>
-          <nav className="nav">
+    <div className="tb-shell">
+      <header className="tb-topbar" ref={topbarRef}>
+        <div className="tb-topbar-inner">
+          <NavLink to="/" className="tb-brand">
+            <ThienBaoLogo size={30} />
+            <span className="tb-brand-name">{THIENBAO_BRAND}</span>
+            <span className="tb-subbrand">Xưởng may</span>
+          </NavLink>
+
+          <nav className="tb-nav" aria-label="Điều hướng xưởng">
             {visibleItems.map((item) => (
               <NavLink key={item.to} to={item.to}>
-                <Icon name={item.icon} />
+                <Icon name={item.icon} size={16} />
                 <span>{item.label}</span>
               </NavLink>
             ))}
           </nav>
+
+          <ThienBaoUserMenu
+            name={displayName}
+            roleLabel={roleLabel}
+            onSignOut={async () => {
+              await signOut()
+              navigate('/login', { replace: true })
+            }}
+          />
         </div>
       </header>
-      <main className="content">
+
+      <main className="tb-main">
         {loading ? (
-          <p className="muted">Đang tải dữ liệu xưởng may…</p>
+          <div className="tb-empty">Đang tải dữ liệu xưởng may…</div>
         ) : error ? (
           <ErrorPage code={403} title="Không tải được cấu hình xưởng" message={error} />
         ) : (
-          <Suspense fallback={<p className="muted">Đang tải…</p>}>
+          <Suspense fallback={<div className="tb-empty">Đang tải…</div>}>
             <Outlet />
           </Suspense>
         )}
@@ -162,7 +162,7 @@ function ThienBaoUserMenu({
             <span className="muted">{roleLabel}</span>
           </div>
           <NavLink to="/account" role="menuitem" className="user-dropdown-item">
-            <Icon name="user" />
+            <Icon name="user" size={16} />
             Tài khoản của tôi
           </NavLink>
           <div className="theme-switch" role="radiogroup" aria-label="Giao diện">
@@ -177,13 +177,13 @@ function ThienBaoUserMenu({
                 onClick={(e) => change(choice.value, e.currentTarget)}
                 title={choice.label}
               >
-                <Icon name={choice.icon} size={16} />
+                <Icon name={choice.icon} size={15} />
                 <span>{choice.label}</span>
               </button>
             ))}
           </div>
           <button type="button" role="menuitem" className="user-dropdown-item danger" onClick={onSignOut}>
-            <Icon name="logout" />
+            <Icon name="logout" size={16} />
             Đăng xuất
           </button>
         </div>

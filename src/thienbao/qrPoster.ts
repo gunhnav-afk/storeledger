@@ -33,17 +33,17 @@ export async function renderQrPosterPng(opts: QrPosterOptions): Promise<string> 
   ctx.fillStyle = '#ffffff'
   ctx.fillRect(0, 0, width, height)
 
-  ctx.fillStyle = '#1e3a5f'
+  ctx.fillStyle = '#1d4ed8'
   ctx.fillRect(0, 0, width, 168)
 
   ctx.fillStyle = '#ffffff'
   ctx.textAlign = 'center'
-  ctx.font = font(36, 800)
+  ctx.font = font(34, 600)
   ctx.fillText('THIÊN BẢO CLOTHES', width / 2, 76)
 
-  ctx.fillStyle = '#cfe0f2'
-  ctx.font = font(21, 600)
-  ctx.fillText('MÃ QR CHẤM CÔNG NHÂN VIÊN TẠI XƯỞNG', width / 2, 122)
+  ctx.fillStyle = '#dbeafe'
+  ctx.font = font(20, 500)
+  ctx.fillText('MÃ QR CHẤM CÔNG TẠI XƯỞNG MAY', width / 2, 122)
 
   const qrSize = 500
   const qrX = (width - qrSize) / 2

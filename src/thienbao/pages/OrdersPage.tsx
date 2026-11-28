@@ -9,7 +9,7 @@ import { useWorkshop } from '../workshop'
 import type { TbOrderStatus, TbProductionOrder } from '../types'
 
 const STATUS_META: Record<TbOrderStatus, { label: string; badge: string }> = {
-  pending: { label: 'Chờ vải / Chuẩn bị', badge: 'badge-low' },
+  pending: { label: 'Chờ vải', badge: 'badge-low' },
   cutting: { label: 'Đang cắt', badge: 'badge-low' },
   sewing: { label: 'Đang may', badge: 'badge-ok' },
   finishing: { label: 'Ủi & Đóng gói', badge: 'badge-ok' },
@@ -126,7 +126,7 @@ export function OrdersPage() {
       return setFormError('Số lượng cần may phải là số nguyên lớn hơn 0')
     }
     if (!Number.isInteger(completed) || completed < 0 || completed > 1_000_000) {
-      return setFormError('Số lượng đã hoàn thành không hợp lệ')
+      return setFormError('Số lượng hoàn thành không hợp lệ')
     }
 
     setSaving(true)
@@ -198,11 +198,14 @@ export function OrdersPage() {
 
   return (
     <section>
-      <div className="tb-toolbar">
-        <h1 style={{ margin: 0 }}>Mã hàng xưởng may</h1>
+      <div className="tb-page-head">
+        <div className="tb-page-title-group">
+          <h1>Mã hàng xưởng may</h1>
+          <p className="tb-page-sub">Lệnh cắt may, tiến độ sản lượng và hạn giao</p>
+        </div>
         {isManager && (
           <button type="button" className="primary" onClick={openCreate}>
-            + Thêm mã hàng mới
+            <span>Thêm mã hàng</span>
           </button>
         )}
       </div>
@@ -225,47 +228,47 @@ export function OrdersPage() {
       </div>
 
       {isManager && formOpen && (
-        <div className="card form" style={{ marginBottom: 16 }}>
-          <div className="tb-toolbar" style={{ marginBottom: 6 }}>
-            <strong>{editing ? `Sửa mã hàng ${editing.order_code}` : 'Tạo lệnh sản xuất / Mã hàng mới'}</strong>
-            <button type="button" className="link" onClick={() => setFormOpen(false)}>
+        <div className="card form" style={{ marginBottom: 20 }}>
+          <div className="tb-toolbar" style={{ marginBottom: 0 }}>
+            <h2>{editing ? `Sửa mã hàng ${editing.order_code}` : 'Tạo mã hàng mới'}</h2>
+            <button type="button" className="tb-ghost" onClick={() => setFormOpen(false)}>
               Đóng
             </button>
           </div>
 
-          <div className="row">
+          <div className="tb-grid-3">
             <label>
-              Mã hàng
+              <span className="tb-field-label">Mã hàng</span>
               <input
                 type="text"
-                placeholder="VD: TB-2611-01"
+                placeholder="TB-2611-01"
                 value={draft.orderCode}
                 onChange={(e) => setDraft({ ...draft, orderCode: e.target.value })}
               />
             </label>
-            <label style={{ flex: 2 }}>
-              Tên mẫu quần áo
+            <label>
+              <span className="tb-field-label">Tên mẫu quần áo</span>
               <input
                 type="text"
-                placeholder="VD: Áo sơ mi form rộng tay dài"
+                placeholder="Áo sơ mi tay dài"
                 value={draft.styleName}
                 onChange={(e) => setDraft({ ...draft, styleName: e.target.value })}
               />
             </label>
             <label>
-              Khách đặt / Nhãn hàng
+              <span className="tb-field-label">Khách đặt / Nhãn hàng</span>
               <input
                 type="text"
-                placeholder="VD: Hàng shop nội bộ / Khách sỉ"
+                placeholder="Hàng nội bộ / Khách sỉ"
                 value={draft.customerName}
                 onChange={(e) => setDraft({ ...draft, customerName: e.target.value })}
               />
             </label>
           </div>
 
-          <div className="row">
+          <div className="tb-grid-3">
             <label>
-              Số lượng đặt (chiếc)
+              <span className="tb-field-label">Số lượng đặt (chiếc)</span>
               <input
                 type="number"
                 min={1}
@@ -274,7 +277,7 @@ export function OrdersPage() {
               />
             </label>
             <label>
-              Đã xong (chiếc)
+              <span className="tb-field-label">Đã hoàn thành (chiếc)</span>
               <input
                 type="number"
                 min={0}
@@ -283,7 +286,7 @@ export function OrdersPage() {
               />
             </label>
             <label>
-              Khâu hiện tại
+              <span className="tb-field-label">Khâu hiện tại</span>
               <select
                 value={draft.status}
                 onChange={(e) => setDraft({ ...draft, status: e.target.value as TbOrderStatus })}
@@ -297,19 +300,26 @@ export function OrdersPage() {
             </label>
           </div>
 
-          <div className="row">
-            <DatePicker label="Ngày nhận lệnh" value={draft.receivedDate} onChange={(v) => setDraft({ ...draft, receivedDate: v })} />
+          <div className="tb-grid-2">
+            <div className="tb-field">
+              <span className="tb-field-label">Ngày nhận lệnh</span>
+              <DatePicker
+                label="Ngày nhận lệnh"
+                value={draft.receivedDate}
+                onChange={(v) => setDraft({ ...draft, receivedDate: v })}
+              />
+            </div>
             <label>
-              Hạn giao hàng (tuỳ chọn)
+              <span className="tb-field-label">Hạn giao hàng</span>
               <input type="date" value={draft.dueDate} onChange={(e) => setDraft({ ...draft, dueDate: e.target.value })} />
             </label>
           </div>
 
           <label>
-            Quy cách màu / size / ghi chú may
+            <span className="tb-field-label">Quy cách màu, size và ghi chú may</span>
             <input
               type="text"
-              placeholder="VD: Trắng 100 (S:30, M:40, L:30) · Đen 100 · Vải kate lụa"
+              placeholder="Trắng 100 (S:30, M:40, L:30) · Đen 100 · Vải kate"
               value={draft.note}
               onChange={(e) => setDraft({ ...draft, note: e.target.value })}
             />
@@ -328,10 +338,10 @@ export function OrdersPage() {
       )}
 
       <div className="tb-toolbar">
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span className="muted">Lọc trạng thái</span>
+        <label className="tb-inline-field">
+          <span>Trạng thái</span>
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}>
-            <option value="active">Đang làm tại xưởng</option>
+            <option value="active">Đang sản xuất</option>
             <option value="all">Tất cả mã hàng</option>
             {STATUS_KEYS.map((k) => (
               <option key={k} value={k}>
@@ -343,11 +353,11 @@ export function OrdersPage() {
       </div>
 
       {!orders ? (
-        <p className="muted">Đang tải danh sách mã hàng…</p>
+        <div className="tb-empty">Đang tải danh sách mã hàng…</div>
       ) : orders.error ? (
         <p className="error">{orders.error}</p>
       ) : filtered.length === 0 ? (
-        <p className="muted">Chưa có mã hàng nào trong bộ lọc này.</p>
+        <div className="tb-empty">Chưa có mã hàng nào trong bộ lọc này</div>
       ) : (
         <div className="table-wrap">
           <table>
@@ -355,7 +365,7 @@ export function OrdersPage() {
               <tr>
                 <th>Mã & Mẫu hàng</th>
                 <th>Khách / Lô</th>
-                <th>Tiến độ SL</th>
+                <th>Tiến độ sản lượng</th>
                 <th>Khâu hiện tại</th>
                 <th>Hạn giao</th>
                 {isManager && <th />}
@@ -380,7 +390,7 @@ export function OrdersPage() {
                       <div>
                         <strong>{formatAmount(row.completed_qty)}</strong> / {formatAmount(row.planned_qty)}
                       </div>
-                      <div className="tb-progress" style={{ marginTop: 4 }}>
+                      <div className="tb-progress" style={{ marginTop: 6 }}>
                         <div className="tb-progress-fill" style={{ transform: `scaleX(${ratio})` }} />
                       </div>
                     </td>

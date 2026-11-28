@@ -3,7 +3,6 @@ import { FunctionsHttpError } from '@supabase/supabase-js'
 import { useToast } from '../../lib/toast'
 import { useConfirm, usePrompt } from '../../lib/confirm'
 import { PasswordInput } from '../../components/PasswordInput'
-import { Icon } from '../../components/Icon'
 import { errorMessage } from '../../lib/format'
 import { tbSupabase } from '../supabase'
 import { useTbAuth } from '../auth'
@@ -33,6 +32,7 @@ export function WorkersPage() {
   const [list, setList] = useState<{ rows: TbStaffRow[]; error: string | null } | null>(null)
   const [version, setVersion] = useState(0)
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [createOpen, setCreateOpen] = useState(false)
 
   const [createForm, setCreateForm] = useState({
     fullName: '',
@@ -90,7 +90,7 @@ export function WorkersPage() {
   const lockOrReject = async (row: TbStaffRow) => {
     const ok = await confirm({
       title: 'Khoá quyền truy cập',
-      message: `Khoá quyền truy cập xưởng Thiên Bảo Clothes của ${row.full_name || row.email}?`,
+      message: `Khoá quyền truy cập xưởng của ${row.full_name || row.email}?`,
       confirmText: 'Khoá quyền',
       cancelText: 'Đóng',
       danger: true,
@@ -139,6 +139,7 @@ export function WorkersPage() {
         role: 'staff',
         phone: '',
       })
+      setCreateOpen(false)
       reload()
     } catch (e) {
       setCreateErr(errorMessage(e))
@@ -164,7 +165,7 @@ export function WorkersPage() {
       toast.error(errorMessage(error))
       return
     }
-    toast.success('Đã cập nhật hồ sơ nhân sự xưởng')
+    toast.success('Đã cập nhật hồ sơ nhân sự')
     setEditing(null)
     reload()
   }
@@ -172,7 +173,7 @@ export function WorkersPage() {
   const resetPassword = async (row: TbStaffRow) => {
     const newPass = await prompt({
       title: `Đổi mật khẩu cho ${row.full_name || row.email}`,
-      message: 'Nhập mật khẩu mới (tối thiểu 6 ký tự):',
+      message: 'Nhập mật khẩu mới (ít nhất 6 ký tự):',
       placeholder: 'Mật khẩu mới…',
       type: 'password',
       confirmText: 'Lưu mật khẩu',
@@ -197,58 +198,66 @@ export function WorkersPage() {
 
   return (
     <section>
-      <h1>Nhân sự xưởng may</h1>
+      <div className="tb-page-head">
+        <div className="tb-page-title-group">
+          <h1>Nhân sự xưởng may</h1>
+          <p className="tb-page-sub">Duyệt tài khoản mới và phân tổ nhân sự xưởng</p>
+        </div>
+        <button type="button" className="primary" onClick={() => setCreateOpen((o) => !o)}>
+          <span>{createOpen ? 'Ẩn biểu mẫu' : 'Thêm nhân viên'}</span>
+        </button>
+      </div>
 
       {pendingRows.length > 0 && (
-        <div className="approval-queue" style={{ marginBottom: 20 }}>
-          <div className="approval-queue-header">
-            <h3>
-              <Icon name="staff" size={20} />
-              Tài khoản mới chờ duyệt vào xưởng
-              <span className="approval-queue-count">{pendingRows.length}</span>
-            </h3>
+        <div className="tb-approval-box">
+          <div className="tb-toolbar" style={{ marginBottom: 4 }}>
+            <h2>
+              Tài khoản chờ duyệt
+              <span className="badge badge-low">{pendingRows.length}</span>
+            </h2>
           </div>
-          <p className="muted">Chọn tổ chuyên môn rồi bấm Duyệt để cấp quyền chấm công tại xưởng.</p>
-          <div className="approval-list">
+          <p className="tb-card-desc">Chọn tổ chuyên môn rồi bấm Duyệt để nhân viên có thể quét QR chấm công</p>
+          <div className="tb-approval-list">
             {pendingRows.map((u) => (
-              <div key={u.user_id} className="approval-card">
-                <div className="approval-card-top">
-                  <div>
-                    <strong>{u.full_name || '(chưa đặt tên)'}</strong>
-                    <br />
-                    <small className="muted">{u.email}</small>
-                  </div>
-                  <div className="approval-card-actions">
-                    <select
-                      aria-label="Chọn tổ"
-                      value={pendingDept[u.user_id] ?? 'May'}
-                      onChange={(e) =>
-                        setPendingDept((prev) => ({ ...prev, [u.user_id]: e.target.value as TbDepartment }))
-                      }
-                    >
-                      {DEPARTMENTS.map((d) => (
-                        <option key={d} value={d}>
-                          Tổ {d}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      className="primary"
-                      disabled={busyId === u.user_id}
-                      onClick={() => approveToWorkshop(u)}
-                    >
-                      Duyệt vào xưởng
-                    </button>
-                    <button
-                      type="button"
-                      className="danger"
-                      disabled={busyId === u.user_id}
-                      onClick={() => lockOrReject(u)}
-                    >
-                      Từ chối
-                    </button>
-                  </div>
+              <div key={u.user_id} className="tb-approval-row">
+                <div>
+                  <strong style={{ display: 'block', color: 'var(--text-h)' }}>
+                    {u.full_name || '(chưa đặt tên)'}
+                  </strong>
+                  <span className="muted" style={{ fontSize: 12.5 }}>
+                    {u.email}
+                  </span>
+                </div>
+                <div className="tb-inline-actions">
+                  <select
+                    aria-label="Chọn tổ chuyên môn"
+                    value={pendingDept[u.user_id] ?? 'May'}
+                    onChange={(e) =>
+                      setPendingDept((prev) => ({ ...prev, [u.user_id]: e.target.value as TbDepartment }))
+                    }
+                  >
+                    {DEPARTMENTS.map((d) => (
+                      <option key={d} value={d}>
+                        Tổ {d}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    className="primary"
+                    disabled={busyId === u.user_id}
+                    onClick={() => approveToWorkshop(u)}
+                  >
+                    Duyệt vào xưởng
+                  </button>
+                  <button
+                    type="button"
+                    className="danger"
+                    disabled={busyId === u.user_id}
+                    onClick={() => lockOrReject(u)}
+                  >
+                    Từ chối
+                  </button>
                 </div>
               </div>
             ))}
@@ -256,14 +265,17 @@ export function WorkersPage() {
         </div>
       )}
 
-      <details className="staff-manual-details" style={{ marginBottom: 20 }}>
-        <summary>
-          <strong>+ Tạo tài khoản nhân viên mới (Email & Mật khẩu)</strong>
-        </summary>
-        <div className="card form" style={{ marginTop: 12 }}>
-          <div className="row">
+      {createOpen && (
+        <div className="card form" style={{ marginBottom: 20 }}>
+          <div className="tb-toolbar" style={{ marginBottom: 0 }}>
+            <h2>Tạo tài khoản nhân viên</h2>
+            <button type="button" className="tb-ghost" onClick={() => setCreateOpen(false)}>
+              Đóng
+            </button>
+          </div>
+          <div className="tb-grid-3">
             <label>
-              Họ và tên
+              <span className="tb-field-label">Họ và tên</span>
               <input
                 type="text"
                 placeholder="Nguyễn Văn A"
@@ -272,7 +284,7 @@ export function WorkersPage() {
               />
             </label>
             <label>
-              Email đăng nhập
+              <span className="tb-field-label">Email đăng nhập</span>
               <input
                 type="email"
                 autoComplete="off"
@@ -282,7 +294,7 @@ export function WorkersPage() {
               />
             </label>
             <label>
-              Mật khẩu
+              <span className="tb-field-label">Mật khẩu khởi tạo</span>
               <PasswordInput
                 autoComplete="new-password"
                 value={createForm.password}
@@ -290,18 +302,18 @@ export function WorkersPage() {
               />
             </label>
           </div>
-          <div className="row">
+          <div className="tb-grid-4">
             <label>
-              Mã nhân viên
+              <span className="tb-field-label">Mã nhân viên</span>
               <input
                 type="text"
-                placeholder="VD: NV01"
+                placeholder="NV01"
                 value={createForm.workerCode}
                 onChange={(e) => setCreateForm({ ...createForm, workerCode: e.target.value })}
               />
             </label>
             <label>
-              Tổ chuyên môn
+              <span className="tb-field-label">Tổ chuyên môn</span>
               <select
                 value={createForm.department}
                 onChange={(e) => setCreateForm({ ...createForm, department: e.target.value as TbDepartment })}
@@ -314,7 +326,7 @@ export function WorkersPage() {
               </select>
             </label>
             <label>
-              Vai trò
+              <span className="tb-field-label">Vai trò</span>
               <select
                 value={createForm.role}
                 onChange={(e) => setCreateForm({ ...createForm, role: e.target.value as TbRole })}
@@ -324,35 +336,38 @@ export function WorkersPage() {
               </select>
             </label>
             <label>
-              Số điện thoại
+              <span className="tb-field-label">Số điện thoại</span>
               <input
                 type="tel"
-                placeholder="09xx..."
+                placeholder="09xx…"
                 value={createForm.phone}
                 onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
               />
             </label>
           </div>
           {createErr && <p className="error">{createErr}</p>}
-          <div>
+          <div className="tb-inline-actions">
             <button type="button" className="primary" disabled={creating} onClick={createWorkerAccount}>
-              {creating ? 'Đang tạo…' : 'Tạo tài khoản nhân viên'}
+              {creating ? 'Đang tạo…' : 'Tạo tài khoản'}
+            </button>
+            <button type="button" onClick={() => setCreateOpen(false)}>
+              Huỷ
             </button>
           </div>
         </div>
-      </details>
+      )}
 
       {editing && (
-        <div className="card form" style={{ marginBottom: 16 }}>
-          <div className="tb-toolbar" style={{ marginBottom: 6 }}>
-            <strong>Cập nhật hồ sơ nhân sự xưởng</strong>
-            <button type="button" className="link" onClick={() => setEditing(null)}>
+        <div className="card form" style={{ marginBottom: 20 }}>
+          <div className="tb-toolbar" style={{ marginBottom: 0 }}>
+            <h2>Cập nhật hồ sơ nhân sự</h2>
+            <button type="button" className="tb-ghost" onClick={() => setEditing(null)}>
               Đóng
             </button>
           </div>
-          <div className="row">
+          <div className="tb-grid-3">
             <label>
-              Họ và tên
+              <span className="tb-field-label">Họ và tên</span>
               <input
                 type="text"
                 value={editing.fullName}
@@ -360,16 +375,26 @@ export function WorkersPage() {
               />
             </label>
             <label>
-              Mã nhân viên
+              <span className="tb-field-label">Mã nhân viên</span>
               <input
                 type="text"
-                placeholder="VD: NV01"
+                placeholder="NV01"
                 value={editing.workerCode}
                 onChange={(e) => setEditing({ ...editing, workerCode: e.target.value })}
               />
             </label>
             <label>
-              Tổ / Bộ phận
+              <span className="tb-field-label">Số điện thoại</span>
+              <input
+                type="tel"
+                value={editing.phone}
+                onChange={(e) => setEditing({ ...editing, phone: e.target.value })}
+              />
+            </label>
+          </div>
+          <div className="tb-grid-2">
+            <label>
+              <span className="tb-field-label">Tổ chuyên môn</span>
               <select
                 value={editing.department}
                 onChange={(e) => setEditing({ ...editing, department: e.target.value as TbDepartment })}
@@ -382,31 +407,23 @@ export function WorkersPage() {
               </select>
             </label>
             <label>
-              Vai trò
+              <span className="tb-field-label">Vai trò</span>
               <select
                 value={editing.role}
                 disabled={editing.role === 'super_admin' && !isSuperAdmin}
                 onChange={(e) => setEditing({ ...editing, role: e.target.value as TbRole })}
               >
-                <option value="staff">Công nhân / Nhân viên</option>
+                <option value="staff">Nhân viên</option>
                 <option value="manager">Quản lý xưởng</option>
                 {isSuperAdmin && <option value="super_admin">Chủ xưởng</option>}
               </select>
             </label>
-            <label>
-              Số điện thoại
-              <input
-                type="tel"
-                value={editing.phone}
-                onChange={(e) => setEditing({ ...editing, phone: e.target.value })}
-              />
-            </label>
           </div>
           <label>
-            Ghi chú tay nghề / ca làm
+            <span className="tb-field-label">Ghi chú tay nghề / ca làm</span>
             <input
               type="text"
-              placeholder="VD: Chuyên may vắt sổ, làm ca hành chính…"
+              placeholder="Chuyên may vắt sổ, làm ca hành chính…"
               value={editing.note}
               onChange={(e) => setEditing({ ...editing, note: e.target.value })}
             />
@@ -423,11 +440,11 @@ export function WorkersPage() {
       )}
 
       {!list ? (
-        <p className="muted">Đang tải danh sách nhân sự…</p>
+        <div className="tb-empty">Đang tải danh sách nhân sự…</div>
       ) : list.error ? (
         <p className="error">{list.error}</p>
       ) : activeRows.length === 0 ? (
-        <p className="muted">Chưa có nhân viên nào trong xưởng.</p>
+        <div className="tb-empty">Chưa có nhân sự nào trong xưởng</div>
       ) : (
         <div className="table-wrap">
           <table>
@@ -436,8 +453,8 @@ export function WorkersPage() {
                 <th>Nhân viên</th>
                 <th>Mã NV</th>
                 <th>Tổ</th>
-                <th>SĐT</th>
-                <th>Trạng thái & Vai trò</th>
+                <th>Điện thoại</th>
+                <th>Vai trò</th>
                 <th />
               </tr>
             </thead>
@@ -465,7 +482,7 @@ export function WorkersPage() {
                       {isRejected ? (
                         <span className="badge badge-out">Đã khoá</span>
                       ) : u.role === 'super_admin' ? (
-                        <span className="badge badge-master">Chủ xưởng</span>
+                        <span className="badge tb-badge-role">Chủ xưởng</span>
                       ) : u.role === 'manager' ? (
                         <span className="badge badge-ok">Quản lý xưởng</span>
                       ) : (
@@ -482,7 +499,7 @@ export function WorkersPage() {
                           <button
                             type="button"
                             className="link"
-                            onClick={() =>
+                            onClick={() => {
                               setEditing({
                                 userId: u.user_id,
                                 fullName: u.full_name ?? '',
@@ -492,9 +509,10 @@ export function WorkersPage() {
                                 phone: u.phone ?? '',
                                 note: u.note ?? '',
                               })
-                            }
+                              window.scrollTo({ top: 0, behavior: 'smooth' })
+                            }}
                           >
-                            Phân tổ / Sửa
+                            Sửa
                           </button>
                           {!isSelf && (u.role !== 'super_admin' || isSuperAdmin) && (
                             <>
@@ -502,7 +520,7 @@ export function WorkersPage() {
                                 Đổi mật khẩu
                               </button>
                               <button type="button" className="link danger" onClick={() => lockOrReject(u)}>
-                                Khoá quyền
+                                Khoá
                               </button>
                             </>
                           )}

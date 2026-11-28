@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { PasswordInput } from '../components/PasswordInput'
-import { consumePendingReturnUrl, THIENBAO_BRAND, THIENBAO_SLOGAN } from '../lib/hostScope'
+import { consumePendingReturnUrl, THIENBAO_BRAND } from '../lib/hostScope'
 import { errorMessage } from '../lib/format'
 import { useTbAuth } from './auth'
 import { ThienBaoLogo } from './ThienBaoLogo'
 
 function GoogleIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
       <path
         fill="#4285F4"
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -42,7 +42,7 @@ export function ThienBaoLoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
 
-  if (loading) return <p className="center muted">Đang tải…</p>
+  if (loading) return <div className="tb-login"><p className="muted">Đang tải…</p></div>
   if (session) {
     const from = (location.state as { from?: string } | null)?.from ?? consumePendingReturnUrl() ?? '/'
     return <Navigate to={from} replace />
@@ -59,7 +59,7 @@ export function ThienBaoLoginPage() {
       const msg = errorMessage(err)
       setError(
         /provider is not enabled/i.test(msg)
-          ? 'Chức năng Đăng nhập Google cần bật Google Provider trên project Supabase ThienBaoClothes.'
+          ? 'Đăng nhập Google chưa được bật trên cấu hình Auth của hệ thống'
           : msg,
       )
     }
@@ -70,9 +70,9 @@ export function ThienBaoLoginPage() {
     setError(null)
     setInfo(null)
     const cleanEmail = email.trim().toLowerCase()
-    if (!cleanEmail || !password) return setError('Vui lòng nhập đầy đủ email và mật khẩu')
-    if (mode === 'register' && !fullName.trim()) return setError('Vui lòng nhập họ tên của bạn')
-    if (password.length < 6) return setError('Mật khẩu phải có ít nhất 6 ký tự')
+    if (!cleanEmail || !password) return setError('Vui lòng nhập email và mật khẩu')
+    if (mode === 'register' && !fullName.trim()) return setError('Vui lòng nhập họ và tên')
+    if (password.length < 6) return setError('Mật khẩu cần ít nhất 6 ký tự')
 
     setSubmitting(true)
     try {
@@ -80,7 +80,7 @@ export function ThienBaoLoginPage() {
         await signIn(cleanEmail, password)
       } else {
         await signUp(fullName.trim(), cleanEmail, password)
-        setInfo('Đã gửi đăng ký tài khoản. Quản lý xưởng sẽ duyệt tài khoản của bạn.')
+        setInfo('Đã gửi yêu cầu đăng ký. Quản lý xưởng sẽ duyệt tài khoản của bạn.')
       }
     } catch (err) {
       const msg = errorMessage(err)
@@ -91,28 +91,28 @@ export function ThienBaoLoginPage() {
   }
 
   return (
-    <main className="login">
-      <div className="card form login-card">
-        <div className="login-brand">
-          <ThienBaoLogo size={52} />
+    <main className="tb-login">
+      <div className="card tb-login-card">
+        <div className="tb-login-brand">
+          <ThienBaoLogo size={42} />
           <div>
             <h1>{THIENBAO_BRAND}</h1>
-            <p className="muted">{THIENBAO_SLOGAN}</p>
+            <p>Chấm công & quản lý xưởng may</p>
           </div>
         </div>
 
         <button
           type="button"
-          className="btn-google"
+          className="tb-google-btn"
           disabled={googleLoading}
           onClick={onGoogleClick}
         >
           <GoogleIcon />
-          <span>{googleLoading ? 'Đang chuyển tới Google…' : 'Đăng nhập bằng Google'}</span>
+          <span>{googleLoading ? 'Đang chuyển tới Google…' : 'Tiếp tục với Google'}</span>
         </button>
 
-        <p className="login-hint muted">
-          Đăng nhập nhanh với tài khoản Google. Nhân viên mới đăng nhập lần đầu sẽ tự động vào hàng chờ để quản lý xưởng duyệt.
+        <p className="muted" style={{ margin: '-6px 0 0', fontSize: 12.5 }}>
+          Nhân viên đăng nhập lần đầu sẽ vào danh sách chờ quản lý xưởng duyệt
         </p>
 
         {error && (
@@ -122,14 +122,14 @@ export function ThienBaoLoginPage() {
         )}
         {info && <p className="success">{info}</p>}
 
-        <div className="login-divider">
-          <span>hoặc</span>
+        <div className="tb-divider">
+          <span>hoặc dùng email</span>
         </div>
 
-        <form onSubmit={onSubmit} className="login-email-form">
+        <form onSubmit={onSubmit} className="form">
           {mode === 'register' && (
             <label>
-              Họ và tên nhân viên
+              <span className="tb-field-label">Họ và tên</span>
               <input
                 type="text"
                 placeholder="Nguyễn Văn A"
@@ -140,17 +140,18 @@ export function ThienBaoLoginPage() {
             </label>
           )}
           <label>
-            Email đăng nhập
+            <span className="tb-field-label">Email</span>
             <input
               type="email"
               autoComplete="username"
+              placeholder="ten@congty.com"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </label>
           <label>
-            Mật khẩu
+            <span className="tb-field-label">Mật khẩu</span>
             <PasswordInput
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               required
@@ -158,15 +159,15 @@ export function ThienBaoLoginPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </label>
-          <button type="submit" className="primary" disabled={submitting}>
-            {submitting ? 'Đang xử lý…' : mode === 'login' ? 'Đăng nhập' : 'Đăng ký bằng Email'}
+          <button type="submit" className="primary tb-big-btn" disabled={submitting}>
+            {submitting ? 'Đang xử lý…' : mode === 'login' ? 'Đăng nhập' : 'Đăng ký chờ duyệt'}
           </button>
         </form>
 
-        <p className="login-hint muted" style={{ textAlign: 'center', marginTop: 10 }}>
+        <div style={{ textAlign: 'center', fontSize: 13 }}>
           {mode === 'login' ? (
             <>
-              Không dùng Google?{' '}
+              <span className="muted">Chưa có tài khoản? </span>
               <button
                 type="button"
                 className="link"
@@ -175,12 +176,12 @@ export function ThienBaoLoginPage() {
                   setMode('register')
                 }}
               >
-                Đăng ký bằng Email chờ duyệt
+                Đăng ký bằng email
               </button>
             </>
           ) : (
             <>
-              Đã có tài khoản?{' '}
+              <span className="muted">Đã có tài khoản? </span>
               <button
                 type="button"
                 className="link"
@@ -193,7 +194,7 @@ export function ThienBaoLoginPage() {
               </button>
             </>
           )}
-        </p>
+        </div>
       </div>
     </main>
   )

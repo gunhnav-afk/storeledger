@@ -116,7 +116,7 @@ function DailyAttendanceTab({ staff }: { staff: TbStaffRow[] }) {
     setSaving(false)
     if (error) return setFormError(errorMessage(error))
 
-    toast.success(editingId ? 'Đã cập nhật giờ chấm công' : 'Đã thêm chấm công thủ công')
+    toast.success(editingId ? 'Đã cập nhật giờ chấm công' : 'Đã thêm chấm công bù')
     setShowManual(false)
     setEditingId(null)
     setVersion((v) => v + 1)
@@ -146,32 +146,14 @@ function DailyAttendanceTab({ staff }: { staff: TbStaffRow[] }) {
   return (
     <div>
       {!hasGps && (
-        <div className="tb-gps-status warn" style={{ marginTop: 0, marginBottom: 16 }}>
-          <span>Bạn chưa chọn vị trí GPS của xưởng trên bản đồ để mở tính năng quét QR chấm công.</span>
-          <Link to="/qr-setup" className="button primary">
+        <div className="tb-gps-status warn" style={{ marginBottom: 16 }}>
+          <span>Chưa ghim vị trí GPS của xưởng để mở quét QR chấm công</span>
+          <Link to="/qr-setup" className="tb-btn">
             <Icon name="qr" size={16} />
-            Chọn vị trí GPS & In mã QR
+            <span>Cài đặt vị trí & Mã QR</span>
           </Link>
         </div>
       )}
-
-      <div className="tb-toolbar">
-        <div className="tb-inline-actions">
-          <DatePicker label="Ngày chấm công" value={date} max={todayVN()} onChange={setDate} />
-          <button type="button" onClick={() => setVersion((v) => v + 1)}>
-            Làm mới
-          </button>
-        </div>
-        <div className="tb-inline-actions">
-          <Link to="/qr-setup" className="button">
-            <Icon name="printer" size={16} />
-            In mã QR & Bản đồ GPS
-          </Link>
-          <button type="button" className="primary" onClick={startNewManual}>
-            + Chấm công bù / Bổ sung
-          </button>
-        </div>
-      </div>
 
       <div className="tb-stats">
         <div className="tb-stat">
@@ -188,21 +170,41 @@ function DailyAttendanceTab({ staff }: { staff: TbStaffRow[] }) {
         </div>
       </div>
 
+      <div className="tb-toolbar">
+        <div className="tb-inline-actions">
+          <div style={{ width: 210 }}>
+            <DatePicker label="Ngày chấm công" value={date} max={todayVN()} onChange={setDate} />
+          </div>
+          <button type="button" onClick={() => setVersion((v) => v + 1)}>
+            Làm mới
+          </button>
+        </div>
+        <div className="tb-inline-actions">
+          <Link to="/qr-setup" className="tb-btn">
+            <Icon name="printer" size={16} />
+            <span>In bảng QR</span>
+          </Link>
+          <button type="button" className="primary" onClick={startNewManual}>
+            <span>Chấm công bù</span>
+          </button>
+        </div>
+      </div>
+
       {showManual && (
         <div className="card form" style={{ marginBottom: 16 }}>
-          <div className="tb-toolbar" style={{ marginBottom: 6 }}>
-            <strong>
-              {editingId ? 'Sửa giờ chấm công' : 'Chấm công thủ công'} ({formatDate(date)})
-            </strong>
-            <button type="button" className="link" onClick={() => setShowManual(false)}>
+          <div className="tb-toolbar" style={{ marginBottom: 0 }}>
+            <h2>
+              {editingId ? 'Sửa giờ chấm công' : 'Chấm công bù'} · {formatDate(date)}
+            </h2>
+            <button type="button" className="tb-ghost" onClick={() => setShowManual(false)}>
               Đóng
             </button>
           </div>
-          <div className="row">
+          <div className="tb-grid-3">
             <label>
-              Nhân viên
+              <span className="tb-field-label">Nhân viên</span>
               <select value={form.userId} onChange={(e) => setForm({ ...form, userId: e.target.value })}>
-                <option value="">-- Chọn nhân viên --</option>
+                <option value="">Chọn nhân viên</option>
                 {approvedStaff.map((s) => (
                   <option key={s.user_id} value={s.user_id}>
                     {s.full_name || s.email} ({s.department})
@@ -211,19 +213,19 @@ function DailyAttendanceTab({ staff }: { staff: TbStaffRow[] }) {
               </select>
             </label>
             <label>
-              Giờ vào ca
+              <span className="tb-field-label">Giờ vào ca</span>
               <input type="time" value={form.checkIn} onChange={(e) => setForm({ ...form, checkIn: e.target.value })} />
             </label>
             <label>
-              Giờ tan ca (để trống nếu đang làm)
+              <span className="tb-field-label">Giờ tan ca (để trống nếu đang làm)</span>
               <input type="time" value={form.checkOut} onChange={(e) => setForm({ ...form, checkOut: e.target.value })} />
             </label>
           </div>
           <label>
-            Ghi chú / Lý do điều chỉnh
+            <span className="tb-field-label">Ghi chú điều chỉnh</span>
             <input
               type="text"
-              placeholder="Ví dụ: Quên quét lúc về, điện thoại hết pin…"
+              placeholder="Quên quét lúc về, điện thoại hết pin…"
               value={form.note}
               onChange={(e) => setForm({ ...form, note: e.target.value })}
             />
@@ -241,11 +243,11 @@ function DailyAttendanceTab({ staff }: { staff: TbStaffRow[] }) {
       )}
 
       {!rows ? (
-        <p className="muted">Đang tải danh sách chấm công…</p>
+        <div className="tb-empty">Đang tải danh sách chấm công…</div>
       ) : rows.error ? (
         <p className="error">{rows.error}</p>
       ) : rows.list.length === 0 ? (
-        <p className="muted">Chưa có ai chấm công trong ngày {formatDate(date)}.</p>
+        <div className="tb-empty">Chưa có lượt chấm công nào trong ngày {formatDate(date)}</div>
       ) : (
         <div className="table-wrap">
           <table>
@@ -255,7 +257,7 @@ function DailyAttendanceTab({ staff }: { staff: TbStaffRow[] }) {
                 <th>Tổ</th>
                 <th>Vào ca</th>
                 <th>Tan ca</th>
-                <th>GPS</th>
+                <th>Định vị</th>
                 <th>Giờ công</th>
                 <th>Ghi chú</th>
                 <th />
@@ -268,7 +270,7 @@ function DailyAttendanceTab({ staff }: { staff: TbStaffRow[] }) {
                   <tr key={r.id}>
                     <td>
                       <strong>{info?.full_name || info?.email || r.user_id.slice(0, 8)}</strong>
-                      {info?.worker_code && <small className="muted"> · {info.worker_code}</small>}
+                      {info?.worker_code && <span className="muted"> · {info.worker_code}</span>}
                     </td>
                     <td>{info?.department ?? '—'}</td>
                     <td>{formatTimeInputVN(r.check_in_at)}</td>
@@ -292,7 +294,7 @@ function DailyAttendanceTab({ staff }: { staff: TbStaffRow[] }) {
                     <td className="muted">{r.note ?? ''}</td>
                     <td className="actions">
                       <button type="button" className="link" onClick={() => startEditRow(r)}>
-                        Sửa giờ
+                        Sửa
                       </button>
                       <button type="button" className="link danger" onClick={() => removeRow(r)}>
                         Xoá
@@ -392,22 +394,22 @@ function TimesheetSummaryTab({ staff }: { staff: TbStaffRow[] }) {
   return (
     <div>
       <div className="tb-toolbar">
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <label className="tb-inline-field">
           <span>Tháng chấm công</span>
           <input type="month" value={month} max={todayVN().slice(0, 7)} onChange={(e) => setMonth(e.target.value)} />
         </label>
         <button type="button" className="primary" disabled={summary.length === 0} onClick={exportExcel}>
-          <Icon name="download" />
-          Xuất Excel bảng giờ công (.xlsx)
+          <Icon name="download" size={16} />
+          <span>Xuất Excel (.xlsx)</span>
         </button>
       </div>
 
       {!data ? (
-        <p className="muted">Đang tổng hợp bảng giờ công…</p>
+        <div className="tb-empty">Đang tổng hợp bảng giờ công…</div>
       ) : data.error ? (
         <p className="error">{data.error}</p>
       ) : summary.length === 0 ? (
-        <p className="muted">Chưa có dữ liệu chấm công trong tháng {month}.</p>
+        <div className="tb-empty">Chưa có dữ liệu chấm công trong tháng {month}</div>
       ) : (
         <div className="table-wrap">
           <table>
@@ -416,9 +418,9 @@ function TimesheetSummaryTab({ staff }: { staff: TbStaffRow[] }) {
                 <th>Nhân viên</th>
                 <th>Tổ</th>
                 <th>Số ngày làm</th>
-                <th>Ca chưa chấm ra</th>
+                <th>Trạng thái ca</th>
                 <th>Tổng giờ công</th>
-                <th>Quy đổi thập phân</th>
+                <th>Quy đổi giờ</th>
               </tr>
             </thead>
             <tbody>
@@ -428,7 +430,7 @@ function TimesheetSummaryTab({ staff }: { staff: TbStaffRow[] }) {
                   <tr key={row.userId}>
                     <td>
                       <strong>{s?.full_name || s?.email || row.userId.slice(0, 8)}</strong>
-                      {s?.worker_code && <small className="muted"> · {s.worker_code}</small>}
+                      {s?.worker_code && <span className="muted"> · {s.worker_code}</span>}
                     </td>
                     <td>{s?.department ?? '—'}</td>
                     <td>{row.days.size} ngày</td>
@@ -436,7 +438,7 @@ function TimesheetSummaryTab({ staff }: { staff: TbStaffRow[] }) {
                       {row.openSessions > 0 ? (
                         <span className="badge badge-low">{row.openSessions} ca thiếu giờ ra</span>
                       ) : (
-                        <span className="badge badge-ok">Đủ</span>
+                        <span className="badge badge-ok">Đầy đủ</span>
                       )}
                     </td>
                     <td>
@@ -468,28 +470,30 @@ export function AttendanceAdminPage() {
   }, [])
 
   return (
-    <div className="tabs-page">
-      <div className="tabs-head">
-        <h1>Bảng chấm công</h1>
-        <nav className="tabs" aria-label="Bảng chấm công">
-          <NavLink to="/attendance/today" className="tab">
-            <Icon name="calendar" size={17} />
-            <span>Chấm công ngày</span>
+    <section>
+      <div className="tb-page-head">
+        <div className="tb-page-title-group">
+          <h1>Bảng chấm công</h1>
+          <p className="tb-page-sub">Ca làm trong ngày và tổng hợp giờ công tháng</p>
+        </div>
+        <nav className="tb-segmented" aria-label="Chế độ xem chấm công">
+          <NavLink to="/attendance/today">
+            <Icon name="calendar" size={15} />
+            <span>Theo ngày</span>
           </NavLink>
-          <NavLink to="/attendance/timesheet" className="tab">
-            <Icon name="report" size={17} />
-            <span>Tổng hợp giờ công</span>
+          <NavLink to="/attendance/timesheet">
+            <Icon name="report" size={15} />
+            <span>Tổng hợp tháng</span>
           </NavLink>
         </nav>
       </div>
-      <div className="workspace-body">
-        <Routes>
-          <Route index element={<Navigate to="today" replace />} />
-          <Route path="today" element={<DailyAttendanceTab staff={staff} />} />
-          <Route path="timesheet" element={<TimesheetSummaryTab staff={staff} />} />
-          <Route path="qr-map" element={<Navigate to="/qr-setup" replace />} />
-        </Routes>
-      </div>
-    </div>
+
+      <Routes>
+        <Route index element={<Navigate to="today" replace />} />
+        <Route path="today" element={<DailyAttendanceTab staff={staff} />} />
+        <Route path="timesheet" element={<TimesheetSummaryTab staff={staff} />} />
+        <Route path="qr-map" element={<Navigate to="/qr-setup" replace />} />
+      </Routes>
+    </section>
   )
 }
