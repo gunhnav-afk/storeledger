@@ -1180,11 +1180,17 @@
 }
 
 /* Scanner & Progress */
+.tb-scanner-panel {
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
 .tb-scanner-box {
   position: relative;
   width: 100%;
   max-width: 340px;
-  margin: 12px auto 0;
+  aspect-ratio: 1 / 1;
+  margin: 0 auto;
   border-radius: var(--tb-radius-ctrl);
   overflow: hidden;
   border: 1px solid var(--border-strong);
@@ -1193,8 +1199,48 @@
 
 .tb-scanner-video {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
   display: block;
+}
+
+.tb-scanner-guide {
+  position: absolute;
+  inset: 36px;
+  border: 2px solid var(--tb-accent-text);
+  border-radius: 12px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.tb-scanner-status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: var(--tb-scanner-bg);
+  color: var(--tb-accent-text);
+  font-size: 13px;
+  text-align: center;
+}
+
+.tb-scanner-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.tb-scanner-actions button {
+  padding: 0 12px;
+}
+
+@media (max-width: 420px) {
+  .tb-scanner-actions {
+    grid-template-columns: 1fr;
+  }
 }
 
 .tb-progress {
